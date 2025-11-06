@@ -443,7 +443,7 @@ function create_basic_julia_course()
             ),
             Question(
                 "Good! Variables let you store and reuse values. Now create a variable 'y' " *
-                "with the value 5, then add x and y together.",
+                "with the value 5, then add x and y together. Note: If you’ve just started a new REPL session, you’ll need to define x again.",
                 :code,
                 15,
                 "You need to do two things:\n" *
@@ -579,7 +579,7 @@ function create_basic_julia_course()
             ),
             Question(
                 "The length() function tells you how many elements are in an array. " *
-                "How many elements does v have?",
+                "How many elements does v have?" * "Note: If you’ve just started a new REPL session, you’ll need to define v again. Recall that you assigned v = [10, 20, 30] in the previous question.",
                 :code,
                 3,
                 "The length() function counts how many items are in an array.\n" *
@@ -610,7 +610,7 @@ function create_basic_julia_course()
                 "It's a shortcut so you don't have to add them manually!"
             ),
             Question(
-                "You can add elements to the end of an array with push!(). " *
+                "You can add one or more elements to the end of an array using push!(). The function takes the array as its first argument and the element(s) to be added as the next argument(s) separated by commas." *
                 "Add the number 6 to the end of [1, 2, 3, 4, 5].",
                 :code,
                 [1, 2, 3, 4, 5, 6],
