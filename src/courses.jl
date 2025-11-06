@@ -433,16 +433,16 @@ function create_basic_julia_course()
                 "This means 2 × 2 × 2 × 2 × 2 × 2 × 2 × 2"
             ),
             Question(
-                "Now let's learn about variables. In Julia, you assign values to variables " *
-                "using the = operator. Create a variable called 'x' and assign it the value 10.",
+                "Now let's learn about bindings. You can think of bindings as assigning names to values " *
+                "using the = operator. Create a binding called 'x' to the value 10.",
                 :code,
                 10,
-                "Variables let you store values for later use.\n" *
+                "Bindings let you refer to values for later use.\n" *
                 "Type: x = 10\n" *
-                "The variable name goes on the left, equals sign in the middle, value on the right."
+                "The binding name goes on the left, equals sign in the middle, value on the right."
             ),
             Question(
-                "Good! Variables let you store and reuse values. Now create a variable 'y' " *
+                "Good! Bindings let you reuse values. Now create a binding 'y' " *
                 "with the value 5, then add x and y together. Note: If you’ve just started a new REPL session, you’ll need to define x again.",
                 :code,
                 15,
@@ -453,16 +453,16 @@ function create_basic_julia_course()
                 "Remember: x is still 10 from the previous question!"
             ),
             Question(
-                "Excellent! Variables can be updated. Set x to be x * 2 (which should give 20).",
+                "Excellent! Bindings can be reassigned. Set x to be x * 2 (which should give 20).",
                 :code,
                 20,
-                "You can update a variable using its old value.\n" *
+                "You can reassign a binding, even using its old value.\n" *
                 "Type: x = x * 2\n" *
-                "This takes the current value of x (10), multiplies it by 2, and stores the result (20) back in x.\n" *
+                "This takes the current value of x (10), multiplies it by 2, and binds the name x to the result (20).\n" *
                 "This is like saying 'x becomes x times 2'"
             ),
             Question(
-                "Perfect! You've learned basic math operations and variables in Julia.",
+                "Perfect! You've learned basic math operations and bindings in Julia.",
                 :message,
                 nothing
             )
