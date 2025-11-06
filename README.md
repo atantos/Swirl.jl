@@ -127,7 +127,7 @@ Available courses:
 Select a course (enter number, or 0 to exit): 1
 
 Lessons in Julia Basics:
-  1. [ ] Basic Math and Variables
+  1. [ ] Basic Math and Bindings
   2. [ ] Types and Functions
   3. [ ] Vectors and Arrays
   0. Back to course selection
@@ -139,9 +139,9 @@ Commands:
 Select a lesson (enter number, command, or 0 to go back): 1
 
 ============================================================
-| Basic Math and Variables
+| Basic Math and Bindings
 ============================================================
-Learn basic arithmetic operations and how to assign variables in Julia.
+Learn basic arithmetic operations and how to create bindings in Julia.
 
 💡 Available commands: 'hint' (get help), 'skip' (skip question),
    'back' (return to menu), 'info' (show commands again)
@@ -177,10 +177,10 @@ julia> 7 * 6
 
 `Swirl.jl` comes with the **`Julia` Basics** course, which includes:
 
-#### 1. Basic Math and Variables
+#### 1. Basic Math and Bindings
 - Arithmetic operations (+, -, *, /, ^)
-- Variable assignment and naming
-- Updating variables
+- Biding creation and naming
+- Updating bindings
 
 #### 2. Types and Functions
 - Understanding `Julia`'s type system
@@ -261,7 +261,7 @@ Output:
 ============================================================
 
 📚 `Julia` Basics
-  [✓] Basic Math and Variables
+  [✓] Basic Math and Bindings
       Completed! Score: 7 correct
   [⏳] Types and Functions
       Progress: Question 3 | Score: 2 correct
@@ -392,7 +392,7 @@ Swirl.jl/
 ### Code Evaluation
 
 `Swirl.jl` evaluates your `Julia` code in real-time using the `Main` module, so:
-- ✅ Variables you create persist between questions
+- ✅ Bindings you create persist between questions
 - ✅ You can use any `Julia` feature or package
 - ✅ Your code runs in the same environment as your `REPL`
 - ✅ Multi-step questions work naturally
@@ -425,7 +425,7 @@ A: Yes! You can either:
 - Use `reset_lesson_progress("Course", "Lesson")` from `Julia`
 
 **Q: Will typing 'exit' close my `Julia` session?**  
-A: No! The `exit` command returns you to the `Julia` `REPL`. Your session continues and all variables remain available.
+A: No! The `exit` command returns you to the `Julia` `REPL`. Your session continues and all bindings remain available.
 
 **Q: What if I make a mistake?**  
 A: You get 3 attempts per question, and you can always type `hint` for detailed help!
