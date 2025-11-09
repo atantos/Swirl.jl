@@ -64,23 +64,11 @@ swirl()
 # View all available courses
 list_courses()
 
-# See your installed courses
-list_installed_courses()
-
-# View your progress across all courses
-list_progress()
-
 # Install a custom course
 install_course("path/or/url")
 
 # Uninstall a custom course
 uninstall_course("Course Name")
-
-# Reset a specific lesson
-reset_lesson_progress("Course Name", "Lesson Name")
-
-# Reset an entire course
-reset_course_progress("Course Name")
 
 # Delete all progress
 delete_progress()
@@ -123,56 +111,65 @@ julia> swirl()
 | Welcome to Swirl for Julia! 🌀
 ============================================================
 
+🌀 Type ')' to enter Swirl mode!
+   (Press backspace anytime to exit Swirl mode)
+
 Available courses:
   1. Julia Basics
-  0. Exit Swirl
+ -1. Exit Swirl
 
-Select a course (enter number, or 0 to exit): 1
+💡 Select a course (enter number):
 
+swirl> 1
+
+============================================================
 Lessons in Julia Basics:
+============================================================
   1. [ ] Basic Math and Bindings
   2. [ ] Types and Functions
   3. [ ] Vectors and Arrays
-  0. Back to course selection
 
 Commands:
-  reset <number>. Reset/retake a specific lesson (e.g., 'reset 1')
-  reset all. Reset all lessons in this course
+  0. Back to course selection
+ -1. Exit Swirl
+  reset <number> - Reset a specific lesson (e.g., 'reset 1')
+  reset all - Reset all lessons in this course
 
-Select a lesson (enter number, command, or 0 to go back): 1
+💡 Type a lesson number or command:
+
+swirl> 1
 
 ============================================================
 | Basic Math and Bindings
 ============================================================
 Learn basic arithmetic operations and how to create bindings in Julia.
 
-💡 Available commands: 'hint' (get help), 'skip' (skip question),
-   'back' (return to menu), 'info' (show commands again)
-
 --- Question 1 of 7 ---
 
-Welcome to Swirl for Julia! Let's begin! Julia can be used as a
-calculator. Try adding 5 + 3.
+Welcome to Swirl for Julia! In this lesson, you'll learn the basics of
+Julia programming. We'll start with simple math operations and bindings.
 
-julia> 5 + 3
-8
+Let's begin! Julia can be used as a calculator. Try adding 5 + 3.
+
+swirl> 5 + 3
 ✓ Correct!
 
 --- Question 2 of 7 ---
 
 Great! Now try multiplication. What is 7 * 6?
 
-julia> hint
+swirl> hint
 💡 Hint: In Julia, multiplication uses the asterisk symbol: *
 Type: 7 * 6
 (Note: Unlike some languages, you can't skip the * symbol, so '7 6' won't work)
 
-julia> 7 * 6
-42
+swirl> 7 * 6
 ✓ Correct!
 
 ...
 ```
+
+> **Note:** The example above shows REPL mode (with ReplMaker.jl installed). The prompt changes to `swirl>` and you get syntax highlighting. Without ReplMaker, you'll use classic mode with the standard `julia>` prompt.
 
 ## 📦 Course Structure
 
@@ -231,6 +228,12 @@ install_course("https://github.com/atantos/course-repo")
 install_course("https://example.com/course.zip")
 ```
 
+> **Note:** Installing from GitHub or URLs requires system commands to be available:
+> - `unzip` for .zip files (GitHub repos and .zip archives)
+> - `tar` for .tar.gz files
+> 
+> These are typically pre-installed on Linux/macOS. On Windows, you may need Git Bash, WSL, or manual extraction.
+
 ### Example
 
 ```bash
@@ -252,58 +255,6 @@ install_course(expanduser("~/my_julia_course"))
 
 # 5. Use it!
 swirl()
-```
-
-## 🔄 Managing Your Progress
-
-### View Your Progress
-
-```julia
-list_progress()
-```
-
-Output:
-
-```
-📊 Your Progress:
-============================================================
-
-📚 `Julia` Basics
-  [✓] Basic Math and Bindings
-      Completed! Score: 7 correct
-  [⏳] Types and Functions
-      Progress: Question 3 | Score: 2 correct
-```
-
-### Reset a Lesson
-
-**From the Lesson Menu:**
-
-```
-Select a lesson: reset 2
-✓ Lesson 'Types and Functions' has been reset!
-```
-
-**From `Julia` `REPL`:**
-
-```julia
-reset_lesson_progress("Julia Basics", "Types and Functions")
-```
-
-### Reset All Lessons in a Course
-
-**From the Lesson Menu:**
-
-```
-Select a lesson: reset all
-Are you sure? yes
-✓ All lessons have been reset!
-```
-
-**From `Julia`:**
-
-```julia
-reset_course_progress("Julia Basics")
 ```
 
 ## 📝 Creating Custom Courses
@@ -361,14 +312,25 @@ Question(
 **Multiple Choice:**
 
 ```julia
+# Helper function (recommended)
 mc(q, choices, correct_idx, hint="") =
-    Question(q, :multiple_choice, correct_idx, hint, choices)
+    Question(q, :multiple_choice, correct_idx, hint, choices, nothing)
 
 mc(
     "What is Julia?",
     ["A programming language", "A person", "A city"],
     1,              # Correct answer (1-based indexing)
     "It's for programming!"
+)
+
+# Or use the full constructor directly:
+Question(
+    "What operator is used for exponentiation?",
+    :multiple_choice,
+    3,                      # Index of correct answer
+    "It's the ^ symbol",    # Hint
+    ["*", "**", "^", "pow"], # Choices array
+    nothing                 # Validator (usually nothing)
 )
 ```
 
@@ -383,9 +345,7 @@ Question(
 )
 ```
 
-## 📚 Course Structure
-
-### Built-in: `Julia` Basics
+## 📚 Package Structure
 
 ```
 Swirl.jl/
@@ -395,7 +355,7 @@ Swirl.jl/
 │   ├── parser.jl          # Code evaluation
 │   ├── runner.jl          # Lesson execution
 │   ├── progress.jl        # Progress tracking
-│   └── courses.jl         # Course management
+│   └── courses.jl         # Course management (includes built-in Julia Basics)
 │
 ├── templates/             # Templates for creating courses
 │   ├── course/
@@ -443,7 +403,6 @@ A: Yes! You can either:
 
 - Select the lesson and choose "yes" when asked to restart
 - Type `reset 1` at the lesson menu to reset lesson 1
-- Use `reset_lesson_progress("Course", "Lesson")` from `Julia`
 
 **Q: Will typing 'exit' close my `Julia` session?**  
 A: No! The `exit` command returns you to the `Julia` `REPL`. Your session continues and all bindings remain available.
@@ -532,23 +491,20 @@ Start your `Julia` journey today with `swirl()`!
 
 ```julia
 # Learning
-swirl()                                    # Start learning
-list_progress()                            # See your progress
+swirl()                          # Start learning
 
 # Course Management
-list_installed_courses()                   # See all courses
-install_course("source")                   # Install course
-uninstall_course("Course Name")            # Remove course
+list_courses()                   # See all available courses
+install_course("source")         # Install course
+uninstall_course("Course Name")  # Remove course
 
 # Progress Management
-reset_lesson_progress("Course", "Lesson")  # Reset one lesson
-reset_course_progress("Course")            # Reset whole course
-delete_progress()                          # Delete all progress
+delete_progress()                # Delete all progress
 
-# During Lessons
+# During Lessons (type these in Swirl mode)
 hint          # Get help
 skip          # Skip question
-back          # Return to menu
+menu          # Return to menu
 exit          # Exit Swirl
 ```
 
