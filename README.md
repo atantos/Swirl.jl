@@ -245,11 +245,10 @@ cp templates/course/course.jl ~/my_julia_course/
 
 # 3. Edit it with your content
 # Edit ~/my_julia_course/course.jl
-
-# 4. Install it
 ```
 
 ```julia
+# 4. Install it
 using Swirl
 install_course(expanduser("~/my_julia_course"))
 
@@ -361,8 +360,10 @@ Swirl.jl/
 │   ├── course/
 │   └── lesson/
 │
-└── docs/                  # Documentation
-    └── *.md
+├── README.md              # Documentation
+│
+└── test/                 
+    └── runtests.jl
 ```
 
 ## 💾 How It Works
@@ -372,7 +373,7 @@ Swirl.jl/
 `Swirl.jl` evaluates your `Julia` code in real-time using the `Main` module, so:
 
 - ✅ Bindings you create persist between questions
-- ✅ You can use any `Julia` feature or package
+- ✅ You can use any `Julia` feature
 - ✅ Your code runs in the same environment as your `REPL`
 - ✅ Multi-step questions work naturally
 
