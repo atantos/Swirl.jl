@@ -48,9 +48,12 @@ function Question(text, type, answer, hint, choices, validator=nothing)
 end
 ## XXX end stubs
 
+## -----
 abstract type AbstractQuestion end
 function show_question(question::AbstractQuestion)
-    println(question.text)
+    txt = isa(question.text, Base.Callable) ? question.text() : question.text
+    display(txt)
+
     _show_question(question)
 end
 _show_question(q::AbstractQuestion) = nothing

@@ -591,8 +591,9 @@ end
 
 function handle_hint(state::ReplLessonState)
     q = state.lesson.questions[state.current_question_idx]
+    hint = isa(q.hint, Base.Callable) ? q.hint() : q.hint
     if !isempty(q.hint)
-        println("💡 Hint: $(q.hint)")
+        print("💡 Hint: "); display(hint)
     else
         println("💡 No hint available for this question.")
     end
@@ -699,7 +700,6 @@ function process_answer(state::ReplLessonState, input::AbstractString)
         state.progress.correct_answers += 1
         advance_to_next_question(state)
     else
-        @show result, q.answer
         println("✗ Not quite right.")
         handle_incorrect_answer(state)
     end
