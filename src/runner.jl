@@ -962,11 +962,11 @@ function process_answer(state::ReplLessonState, input::AbstractString)
             println()
             if state.multistep_current_step <= length(q.steps) &&
                !isempty(q.steps[state.multistep_current_step])
-                println("Step $(state.multistep_current_step) of $(question.required_steps):")
-                _show(question.steps[state.multistep_current_step])
+                println("Step $(state.multistep_current_step) of $(q.required_steps):")
+                _show(q.steps[state.multistep_current_step])
             else
-                println("Step $(state.multistep_current_step) of $(question.required_steps):")
-                _show(question.steps[state.multistep_current_step])
+                println("Step $(state.multistep_current_step) of $(q.required_steps):")
+                _show(q.steps[state.multistep_current_step])
             end
         else
             println()
