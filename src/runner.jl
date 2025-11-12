@@ -1,5 +1,24 @@
 # runner.jl — lesson runners + REPL handler (with lesson navigation and course selection)
 
+
+"""
+    run_question_setup(question)
+
+Run setup code for a question if it exists. This ensures required variables
+from previous questions are available even if the user restarted Julia.
+"""
+function run_question_setup(question::Question)
+    if !isempty(question.setup)
+        eval_result = safe_eval(question.setup)
+        if !eval_result.success
+            @warn "Setup code failed: $(eval_result.error)"
+            println("Note: Some variables from previous questions may not be available.")
+        end
+    end
+end
+
+
+
 # ============================================================================
 # CLASSIC MODE (readline-based)
 # ============================================================================
@@ -81,6 +100,14 @@ function run_question_classic(question::Question, idx::Int, total::Int)
         return true
     end
 
+    # Handle multistep questions differently
+    if question.type == :multistep_code
+        return run_multistep_question_classic(question, idx, total)
+    end
+
+    # Run setup code before displaying the question
+    run_question_setup(question)
+
     println(question.text)
     println()
 
@@ -154,6 +181,113 @@ function run_question_classic(question::Question, idx::Int, total::Int)
     return true
 end
 
+"""
+    run_multistep_question_classic(question, idx, total)
+
+Run a multistep question in classic mode, where user provides code line by line.
+"""
+function run_multistep_question_classic(question::Question, idx::Int, total::Int)
+    println(question.text)
+    println()
+
+    # Run setup code before starting multistep
+    run_question_setup(question)
+
+    println("This is a multi-step question. Enter your code line by line.")
+    println("   Type 'done' when finished, 'hint' for help, or 'skip' to skip.")
+    println()
+
+    current_step = 1
+    max_steps = question.required_steps
+    code_lines = String[]
+
+    while current_step <= max_steps
+        # Show step prompt if available
+        if current_step <= length(question.steps) && !isempty(question.steps[current_step])
+            println("Step $current_step/$max_steps: $(question.steps[current_step])")
+        else
+            println("Step $current_step/$max_steps:")
+        end
+
+        print("julia> ")
+        user_input = readline()
+
+        # Handle commands
+        low = lowercase(strip(user_input))
+        if low in ["exit", "quit", "bye"]
+            return false
+        elseif low == "skip"
+            println("Skipping this question...")
+            return true
+        elseif low == "done"
+            # Check if enough steps completed
+            if current_step <= max_steps
+                println("Please complete all $max_steps steps. (You're on step $current_step)")
+                continue
+            end
+            break
+        elseif low in ["hint", "help"]
+            # Show step-specific hint if available
+            if current_step <= length(question.step_hints) && !isempty(question.step_hints[current_step])
+                println("Hint: $(question.step_hints[current_step])")
+            elseif !isempty(question.hint)
+                println("Hint: $(question.hint)")
+            else
+                println("No hint available for this step.")
+            end
+            continue
+        elseif isempty(strip(user_input))
+            println("Please enter some code.")
+            continue
+        end
+
+        # Execute the code
+        push!(code_lines, user_input)
+        eval_result = safe_eval(user_input)
+
+        if !eval_result.success
+            println("Error: $(eval_result.error)")
+            println("Try again, or type 'hint' for help.")
+            pop!(code_lines)  # Remove failed code
+            continue
+        end
+
+        # Show result (like REPL) - but suppress 'nothing'
+        if eval_result.result !== nothing
+            println(eval_result.result)
+        end
+
+        current_step += 1
+        println()
+    end
+
+    # Check final answer if all steps completed
+    if current_step > max_steps
+        # Execute all code again to get final result
+        full_code = join(code_lines, "\n")
+        final_result = safe_eval(full_code)
+
+        if final_result.success
+            if question.answer === nothing || final_result.result == question.answer
+                println("Correct! You've completed all steps successfully!")
+                println()
+                return true
+            else
+                println("All steps executed, but the final result doesn't match expected.")
+                println("Your result: $(final_result.result)")
+                println("Expected: $(question.answer)")
+                println()
+                return true  # Still advance
+            end
+        else
+            println("Error in final evaluation: $(final_result.error)")
+            return true  # Still advance
+        end
+    end
+
+    return true
+end
+
 # ============================================================================
 # REPL MODE (ReplMaker-based with lesson and course navigation)
 # ============================================================================
@@ -172,6 +306,8 @@ mutable struct ReplLessonState
     waiting_for_restart_confirmation::Bool
     was_previously_completed::Bool
     waiting_for_reset_all_confirmation::Bool
+    multistep_current_step::Int  # NEW: For multistep questions
+    multistep_code_lines::Vector{String}  # NEW: Accumulated code for 
 end
 
 mutable struct ReplCourseState
@@ -230,7 +366,9 @@ function run_lesson_repl_mode(course_name::String, lesson::Lesson)
             false,
             true,  # waiting_for_restart_confirmation
             true,  # was_previously_completed
-            false  # waiting_for_reset_all_confirmation
+            false,  # waiting_for_reset_all_confirmation
+            1,              # multistep_current_step
+            String[]        # multistep_code_lines
         )
         CURRENT_LESSON_STATE[] = state
 
@@ -254,7 +392,9 @@ function run_lesson_repl_mode(course_name::String, lesson::Lesson)
         false,  # lesson_complete
         false,  # waiting_for_restart_confirmation
         false,  # was_previously_completed
-        false   # waiting_for_reset_all_confirmation
+        false,   # waiting_for_reset_all_confirmation
+        1,              # multistep_current_step
+        String[]        # multistep_code_lines
     )
     CURRENT_LESSON_STATE[] = state
 
@@ -303,12 +443,33 @@ function display_question(state::ReplLessonState)
             display_lesson_menu(state)
         end
     else
+        # Run setup code before displaying the question
+        run_question_setup(question)
+
         println(question.text)
         println()
 
         if question.type == :multiple_choice && !isempty(question.choices)
             for (i, choice) in enumerate(question.choices)
                 println("  $i. $choice")
+            end
+            println()
+        end
+
+        # For multistep questions, show current step
+        if question.type == :multistep_code
+            println("Multi-step question - Enter code line by line.")
+            println("   Type 'done' when finished, 'hint' for help, 'skip' to skip.")
+            if state.multistep_current_step <= question.required_steps
+                # Show step-specific prompt if available
+                if state.multistep_current_step <= length(question.steps) &&
+                   !isempty(question.steps[state.multistep_current_step])
+                    println()
+                    println("Step $(state.multistep_current_step) of $(question.required_steps): $(question.steps[state.multistep_current_step])")
+                else
+                    println()
+                    println("Step $(state.multistep_current_step) of $(question.required_steps):")
+                end
             end
             println()
         end
@@ -404,7 +565,9 @@ function swirl_repl_handler(input::AbstractString)
                     false,
                     false,
                     false,
-                    false  # waiting_for_reset_all_confirmation
+                    false,  # waiting_for_reset_all_confirmation
+                    1,              # multistep_current_step
+                    String[]        # multistep_code_lines
                 )
                 CURRENT_LESSON_STATE[] = lesson_state
                 display_lesson_menu(lesson_state)
@@ -599,10 +762,23 @@ end
 
 function handle_hint(state::ReplLessonState)
     q = state.lesson.questions[state.current_question_idx]
-    if !isempty(q.hint)
-        println("💡 Hint: $(q.hint)")
+
+    # For multistep questions, show step-specific hint
+    if q.type == :multistep_code
+        step = state.multistep_current_step
+        if step <= length(q.step_hints) && !isempty(q.step_hints[step])
+            println("Hint: $(q.step_hints[step])")
+        elseif !isempty(q.hint)
+            println("Hint: $(q.hint)")
+        else
+            println("No hint available for this step.")
+        end
     else
-        println("💡 No hint available for this question.")
+        if !isempty(q.hint)
+            println("Hint: $(q.hint)")
+        else
+            println("No hint available for this question.")
+        end
     end
 end
 
@@ -668,27 +844,106 @@ end
 function process_answer(state::ReplLessonState, input::AbstractString)
     input = String(input)
     q = state.lesson.questions[state.current_question_idx]
-    state.current_attempts += 1
 
+    # Handle multistep questions
+    if q.type == :multistep_code
+        # Check for 'done' command
+        if lowercase(strip(input)) == "done"
+            if state.multistep_current_step <= q.required_steps
+                println("Please complete all $(q.required_steps) steps. (You're on step $(state.multistep_current_step))")
+                return
+            end
+
+            # All steps completed, check final answer
+            full_code = join(state.multistep_code_lines, "\n")
+            final_result = safe_eval(full_code)
+
+            if final_result.success
+                if q.answer === nothing || final_result.result == q.answer
+                    println("Correct! You've completed all steps successfully!")
+                    println()
+                    state.progress.correct_answers += 1
+                    # Reset multistep state
+                    state.multistep_current_step = 1
+                    state.multistep_code_lines = String[]
+                    advance_to_next_question(state)
+                else
+                    println("All steps executed, but result doesn't match expected.")
+                    println("Your result: $(final_result.result)")
+                    println("Expected: $(q.answer)")
+                    println()
+                    # Reset and move forward
+                    state.multistep_current_step = 1
+                    state.multistep_code_lines = String[]
+                    advance_to_next_question(state)
+                end
+            else
+                println("Error in final evaluation: $(final_result.error)")
+                state.multistep_current_step = 1
+                state.multistep_code_lines = String[]
+                advance_to_next_question(state)
+            end
+            return
+        end
+
+        # Execute the code line
+        eval_result = safe_eval(input)
+
+        if !eval_result.success
+            println("Error: $(eval_result.error)")
+            println("Try again, or type 'hint' for help.")
+            return
+        end
+
+        # Code executed successfully
+        push!(state.multistep_code_lines, input)
+
+        # Show result (like REPL) - suppress 'nothing'
+        if eval_result.result !== nothing
+            println(eval_result.result)
+        end
+
+        # Move to next step
+        state.multistep_current_step += 1
+
+        if state.multistep_current_step <= q.required_steps
+            # Show next step prompt
+            println()
+            if state.multistep_current_step <= length(q.steps) &&
+               !isempty(q.steps[state.multistep_current_step])
+                println("Step $(state.multistep_current_step) of $(q.required_steps): $(q.steps[state.multistep_current_step])")
+            else
+                println("Step $(state.multistep_current_step) of $(q.required_steps):")
+            end
+        else
+            println()
+            println("All steps entered! Type 'done' to finish, or continue entering code.")
+        end
+
+        return
+    end
+
+    # Regular questions
+    state.current_attempts += 1
     result = check_answer(input, q.answer, q.type)
 
     if q.type == :code && result isa NamedTuple
         if result.correct
-            println("✓ Correct! $(q.type == :code ? "Great work!" : "")")
+            println("Correct! $(q.type == :code ? "Great work!" : "")")
             println()
             state.progress.correct_answers += 1
             advance_to_next_question(state)
         else
-            println("✗ $(result.message)")
+            println("$(result.message)")
             handle_incorrect_answer(state)
         end
     elseif result == true || (result isa Bool && result)
-        println("✓ Correct!")
+        println("Correct!")
         println()
         state.progress.correct_answers += 1
         advance_to_next_question(state)
     else
-        println("✗ Not quite right.")
+        println("Not quite right.")
         handle_incorrect_answer(state)
     end
 end
@@ -709,6 +964,11 @@ function handle_incorrect_answer(state::ReplLessonState)
 end
 
 function advance_to_next_question(state::ReplLessonState)
+    # Reset multistep state when advancing
+    state.multistep_current_step = 1
+    state.multistep_code_lines = String[]
+    state.current_attempts = 0
+
     state.current_question_idx += 1
     state.progress.current_question = state.current_question_idx
     save_lesson_progress(state.progress)
@@ -720,7 +980,7 @@ function advance_to_next_question(state::ReplLessonState)
         state.lesson_complete = true
 
         println("\n" * "="^60)
-        println("| 🎉 Congratulations!")
+        println("| Congratulations!")
         println("="^60)
         println("You've completed $(state.lesson.name)!")
         total_questions = count(q -> q.type != :message, state.lesson.questions)

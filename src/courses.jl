@@ -443,14 +443,19 @@ function create_basic_julia_course()
             ),
             Question(
                 "Good! Bindings let you reuse values. Now create a binding 'y' " *
-                "with the value 5, then add x and y together. Note: If you’ve just started a new REPL session, you’ll need to define x again.",
-                :code,
+                "with the value 5, then add x and y together.",
+                Val(:multistep_code),
                 15,
-                "You need to do two things:\n" *
-                "1. Create y: y = 5\n" *
-                "2. Add them: x + y\n" *
-                "You can combine these with a semicolon: y = 5; x + y\n" *
-                "Remember: x is still 10 from the previous question!"
+                "",
+                [
+                    "Create a binding 'y' with value 5",
+                    "Add x and y together"
+                ],
+                [
+                    "Type: y = 5\nBindings let you refer to values for later use.",
+                    "Type: x + y\nRemember: x is still 10 from the previous question!"
+                ],
+                "x = 10"
             ),
             Question(
                 "Excellent! Bindings can be reassigned. Set x to be x * 2 (which should give 20).",
@@ -459,7 +464,8 @@ function create_basic_julia_course()
                 "You can reassign a binding, even using its old value.\n" *
                 "Type: x = x * 2\n" *
                 "This takes the current value of x (10), multiplies it by 2, and binds the name x to the result (20).\n" *
-                "This is like saying 'x becomes x times 2'"
+                "This is like saying 'x becomes x times 2'",
+                "x = 10"
             ),
             Question(
                 "Perfect! You've learned basic math operations and bindings in Julia.",
@@ -526,18 +532,25 @@ function create_basic_julia_course()
             ),
             Question(
                 "You can define your own functions! For simple functions, use this syntax:\n" *
-                "    functionname(parameter) = expression\n\n" *
-                "Create a function called 'double' that takes one number and returns twice its value. " *
-                "Then test it by calling double(3).",
-                :code,
-                6,
+                "    functionname(parameter) = expression\n" *
                 "Creating a function has three parts:\n" *
                 "1. Function name: double\n" *
                 "2. Parameter (input): x\n" *
                 "3. What it does: multiply by 2\n\n" *
-                "Type: double(x) = 2x  (or double(x) = 2*x if you prefer)\n" *
-                "Then test it: double(3)\n\n" *
-                "In Julia, you can write 2x instead of 2*x for multiplication!"
+                "Create a function called 'double' that takes one number and returns twice its value. " *
+                "Then test it by calling double(3).",
+                Val(:multistep_code),
+                6,
+                "",
+                [
+                    "Define the function 'double' that returns twice its input",
+                    "Call double(3) to test it"
+                ],
+                [
+                    "Type: double(x) = 2x\nThis creates a function named double that takes one argument x and returns 2 times x.\n" *
+                    "In Julia, you can write 2x instead of 2*x for multiplication!",
+                    "Type: double(3)\nThis should return 6, since double(3) = 2 * 3."
+                ]
             ),
             Question(
                 "Great job! You now understand types and functions in Julia.",
@@ -554,28 +567,32 @@ function create_basic_julia_course()
         [
             Question(
                 "Arrays are collections of values. In Julia, you create a vector (1D array) " *
-                "using square brackets. Create a vector with the numbers 1, 2, 3, 4, 5.",
+                "using square brackets with their members being separated by commas, as in [1,2,3,4,5]. Create a vector with the numbers 10, 20, 30, 40, 50.",
                 :code,
-                [1, 2, 3, 4, 5],
+                [10, 20, 30, 40, 50],
                 "Arrays let you store multiple values under one name.\n" *
-                "Type: [1, 2, 3, 4, 5]\n" *
+                "Type: [10, 20, 30, 40, 50]\n" *
                 "Use square brackets [ ] with commas separating the values.\n" *
-                "The order matters: [1, 2, 3] is different from [3, 2, 1]!"
+                "The order matters: [10, 20, 30, 40, 50] is different from [50, 40, 30, 20, 10]!"
             ),
             Question(
                 "You can access elements of an array using square brackets. Julia uses " *
                 "1-based indexing (the first element is at index 1).\n\n" *
                 "First, create a vector: v = [10, 20, 30]\n" *
-                "Then access its first element: v[1]\n" *
-                "(You can do both steps separately, or combine them with a semicolon)",
-                :code,
+                "Then access its first element: v[1]\n",
+                Val(:multistep_code),
                 10,
-                "Accessing array elements uses the syntax: arrayname[index]\n" *
-                "Remember: Julia counts from 1, not 0!\n" *
-                "Position 1 is the first element, position 2 is the second, etc.\n\n" *
-                "Two ways to do this:\n" *
-                "Option 1 (separate): First type 'v = [10, 20, 30]', press Enter, then type 'v[1]'\n" *
-                "Option 2 (combined): v = [10, 20, 30]; v[1]"
+                "",
+                [
+                    "Create the vector v with values 10, 20, 30",
+                    "Access the first element of v"
+                ],
+                [
+                    "Accessing array elements uses the syntax: arrayname[index]\n" *
+                    "Type: v = [10, 20, 30]\nThis creates a vector named v containing the numbers 10, 20, and 30.",
+                    "Type: v[1]\nThis retrieves the first element of v, which is 10." *
+                    "Remember: Julia counts from 1, not 0!\n"
+                ]
             ),
             Question(
                 "The length() function tells you how many elements are in an array. " *
@@ -585,7 +602,8 @@ function create_basic_julia_course()
                 "The length() function counts how many items are in an array.\n" *
                 "Type: length(v)\n" *
                 "Remember: v was created in the previous question as [10, 20, 30]\n" *
-                "So it has 3 elements: 10, 20, and 30."
+                "So it has 3 elements: 10, 20, and 30.",
+                "v = [10, 20, 30]"
             ),
             Question(
                 "You can use the range operator : to create sequences, then collect() to make a vector. " *
