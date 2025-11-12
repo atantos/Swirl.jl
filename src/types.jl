@@ -1,5 +1,10 @@
 # Core data structures for Swirl
 
+using Markdown
+
+const MDLike = Union{String,Markdown.MD}
+
+
 """
 A question in a Swirl lesson. Can be multiple choice or require code evaluation.
 
@@ -11,34 +16,50 @@ Question types:
 - :exact - Exact string match
 """
 mutable struct Question
-    text::String
+    text::MDLike
     type::Symbol  # :message, :multiple_choice, :code, :exact, :multistep_code
     answer::Any
-    hint::String
-    choices::Vector{String}  # For multiple choice
+    hint::MDLike
+    choices::Vector{MDLike}  # For multiple choice
     validator::Union{Function,Nothing}  # Custom validation function
-    steps::Vector{String}  # For :multistep_code - text prompts for each step
-    step_hints::Vector{String}  # Hints for each step
+    steps::Vector{MDLike}  # For :multistep_code - text prompts for each step
+    step_hints::Vector{MDLike}  # Hints for each step
     required_steps::Int  # Number of steps required
     setup::String  # Code to run before the question to set up variables of a previous julia session
 end
 
-Question(text, type, answer, hint="", setup="") = Question(text, type, answer, hint, String[], nothing, String[], String[], 0, setup)
+# Multistep convenience ctor — accepts Vector{String} and delegates to the 10-arg ctor
+function Question(text::MDLike,
+    ::Val{:multistep_code},
+    answer,
+    hint::MDLike,
+    steps::AbstractVector{<:MDLike},
+    step_hints::AbstractVector{<:MDLike}=MDLike[],
+    setup::String="")
+    steps_v = MDLike[steps...]
+    step_hints_v = isempty(step_hints) ? MDLike[fill("", length(steps_v))...] : MDLike[step_hints...]
+    return Question(text, :multistep_code, answer, hint,
+        String[], nothing,
+        steps_v, step_hints_v, length(steps_v), setup)
+end
+
+Question(text, type, answer, hint="", setup="") = Question(text, type, answer, hint, MDLike[], nothing, MDLike[], MDLike[], 0, setup)
 
 # Constructor for multistep questions
-function Question(text::String, ::Val{:multistep_code}, answer, hint::String, steps::Vector{String}, step_hints::Vector{String}=String[], setup::String="")
+function Question(text::MDLike, ::Val{:multistep_code}, answer, hint::MDLike, steps::Vector{MDLike}, step_hints::Vector{MDLike}=MDLike[], setup::String="")
     if isempty(step_hints)
         step_hints = fill("", length(steps))
     end
-    Question(text, :multistep_code, answer, hint, String[], nothing, steps, step_hints, length(steps), setup)
+    Question(text, :multistep_code, answer, hint, MDLike[], nothing, steps, step_hints, length(steps), setup)
 end
 
 """
 A lesson containing a sequence of questions.
 """
 struct Lesson
-    name::String
-    description::String
+    name::String             # identity (progress keys, directory names, menus)
+    title::MDLike            # displayed title (can be Markdown)
+    description::MDLike
     questions::Vector{Question}
 end
 

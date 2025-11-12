@@ -1,5 +1,9 @@
 # runner.jl — lesson runners + REPL handler (with lesson navigation and course selection)
 
+# Markdown-aware show helper
+_show(x::AbstractString) = println(x)
+_show(x::Markdown.MD) = display(x)
+
 
 """
     run_question_setup(question)
@@ -93,7 +97,7 @@ function run_question_classic(question::Question, idx::Int, total::Int)
     println()
 
     if question.type == :message
-        println(question.text)
+        _show(question.text)
         println()
         print("Press Enter to continue...")
         readline()
@@ -108,12 +112,13 @@ function run_question_classic(question::Question, idx::Int, total::Int)
     # Run setup code before displaying the question
     run_question_setup(question)
 
-    println(question.text)
+    _show(question.text)
     println()
 
     if question.type == :multiple_choice && !isempty(question.choices)
         for (i, choice) in enumerate(question.choices)
-            println("  $i. $choice")
+            print("  $i. ")
+            _show(choice)
         end
         println()
     end
@@ -138,8 +143,9 @@ function run_question_classic(question::Question, idx::Int, total::Int)
             println("⏭ Skipping this question...")
             return true
         elseif lowercase(strip(user_input)) in ["hint", "help"]
-            if !isempty(question.hint)
-                println("💡 Hint: $(question.hint)")
+            if !isempty(String(question.hint)) || (question.hint isa Markdown.MD)
+                print("💡 Hint: ")
+                _show(question.hint)
             else
                 println("💡 No hint available for this question.")
             end
@@ -187,7 +193,7 @@ end
 Run a multistep question in classic mode, where user provides code line by line.
 """
 function run_multistep_question_classic(question::Question, idx::Int, total::Int)
-    println(question.text)
+    _show(question.text)
     println()
 
     # Run setup code before starting multistep
@@ -343,10 +349,11 @@ function run_lesson_repl_mode(course_name::String, lesson::Lesson)
         error("Lesson not found in course")
     end
 
-    println("\n" * "="^60)
-    println("| $(lesson.name)")
-    println("="^60)
-    println(lesson.description)
+    # println("\n" * "="^60)
+    # println("| $(lesson.name)")
+    # println("="^60)
+    _show(lesson.title)
+    _show(lesson.description)
     println()
 
     progress = get_lesson_progress(course_name, lesson.name)
@@ -417,7 +424,7 @@ function display_question(state::ReplLessonState)
     println()
 
     if question.type == :message
-        println(question.text)
+        _show(question.text)
         println()
         # Automatically advance after message - no need to wait for input
         state.waiting_for_message = false
@@ -446,12 +453,13 @@ function display_question(state::ReplLessonState)
         # Run setup code before displaying the question
         run_question_setup(question)
 
-        println(question.text)
+        _show(question.text)
         println()
 
         if question.type == :multiple_choice && !isempty(question.choices)
             for (i, choice) in enumerate(question.choices)
-                println("  $i. $choice")
+                print("  $i. ")
+                _show(choice)
             end
             println()
         end
@@ -465,10 +473,12 @@ function display_question(state::ReplLessonState)
                 if state.multistep_current_step <= length(question.steps) &&
                    !isempty(question.steps[state.multistep_current_step])
                     println()
-                    println("Step $(state.multistep_current_step) of $(question.required_steps): $(question.steps[state.multistep_current_step])")
+                    println("Step $(state.multistep_current_step) of $(question.required_steps):")
+                    _show(question.steps[state.multistep_current_step])
                 else
                     println()
                     println("Step $(state.multistep_current_step) of $(question.required_steps):")
+                    _show(question.steps[state.multistep_current_step])
                 end
             end
             println()
@@ -597,10 +607,11 @@ function swirl_repl_handler(input::AbstractString)
             state.current_question_idx = 1
             state.waiting_for_restart_confirmation = false
 
-            println("\n" * "="^60)
-            println("| $(state.lesson.name)")
-            println("="^60)
-            println(state.lesson.description)
+            # println("\n" * "="^60)
+            # println("| $(state.lesson.name)")
+            # println("="^60)
+            _show(state.lesson.title)
+            _show(state.lesson.description)
             println()
 
             display_question(state)
@@ -697,10 +708,11 @@ function swirl_repl_handler(input::AbstractString)
                     return nothing
                 end
 
-                println("\n" * "="^60)
-                println("| $(new_lesson.name)")
-                println("="^60)
-                println(new_lesson.description)
+                # println("\n" * "="^60)
+                # println("| $(new_lesson.name)")
+                # println("="^60)
+                _show(new_lesson.title)
+                _show(new_lesson.description)
                 println()
 
                 display_question(state)
@@ -767,15 +779,18 @@ function handle_hint(state::ReplLessonState)
     if q.type == :multistep_code
         step = state.multistep_current_step
         if step <= length(q.step_hints) && !isempty(q.step_hints[step])
-            println("Hint: $(q.step_hints[step])")
+            println("💡 Hint:")
+            _show(q.step_hints[step])
         elseif !isempty(q.hint)
-            println("Hint: $(q.hint)")
+            println("💡 Hint:")
+            _show(q.hint)
         else
             println("No hint available for this step.")
         end
     else
-        if !isempty(q.hint)
-            println("Hint: $(q.hint)")
+        if !isempty(String(q.hint)) || (q.hint isa Markdown.MD)
+            print("💡 Hint: ")
+            _show(q.hint)
         else
             println("No hint available for this question.")
         end
@@ -911,9 +926,11 @@ function process_answer(state::ReplLessonState, input::AbstractString)
             println()
             if state.multistep_current_step <= length(q.steps) &&
                !isempty(q.steps[state.multistep_current_step])
-                println("Step $(state.multistep_current_step) of $(q.required_steps): $(q.steps[state.multistep_current_step])")
+                println("Step $(state.multistep_current_step) of $(question.required_steps):")
+                _show(question.steps[state.multistep_current_step])
             else
-                println("Step $(state.multistep_current_step) of $(q.required_steps):")
+                println("Step $(state.multistep_current_step) of $(question.required_steps):")
+                _show(question.steps[state.multistep_current_step])
             end
         else
             println()

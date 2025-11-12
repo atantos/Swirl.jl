@@ -405,70 +405,69 @@ function create_basic_julia_course()
     # Lesson 1: Basic Math and Bindings
     lesson1 = Lesson(
         "Basic Math and Bindings",
-        "Learn basic arithmetic operations and how to create bindings in Julia.",
+        md"# Basic Math and Bindings",
+        md"## Learn basic arithmetic operations and how to create bindings in Julia.",
         [
             Question(
-                "Welcome to Swirl for Julia! In this lesson, you'll learn the basics of " *
-                "Julia programming. We'll start with simple math operations and bindings.\n\n" *
-                "Let's begin! Julia can be used as a calculator. Try adding 5 + 3.",
+                md"*Welcome to Swirl* for `Julia`! 
+In this lesson, you'll learn the basics of `Julia` programming. We'll start with simple math operations and bindings. Let's begin! `Julia` can be used as a calculator. Try adding `5 + 3`.",
                 :code,
                 8,
-                "Simply type the numbers and the plus sign: 5 + 3\n" *
-                "Julia will evaluate the expression and show you the result."
+                md"Simply type the numbers and the plus sign: `5 + 3`
+`Julia` will evaluate the expression and show you the result."
             ),
             Question(
-                "Great! Now try multiplication. What is 7 * 6?",
+                md"**Great**! Now try multiplication. What is `7 * 6`?",
                 :code,
                 42,
-                "In Julia, multiplication uses the asterisk symbol: *\n" *
-                "Type: 7 * 6\n" *
-                "(Note: Unlike some languages, you can't skip the * symbol, so '7 6' won't work)"
+                md"In `Julia`, multiplication uses the asterisk symbol: `*`
+Type: `7 * 6`"
             ),
             Question(
-                "Julia uses ^ for exponentiation. Calculate 2 raised to the power of 8.",
+                md"`Julia` uses `^` for exponentiation. Calculate `2` raised to the power of `8`.",
                 :code,
                 256,
-                "The ^ symbol (caret) means 'to the power of'.\n" *
-                "Type: 2^8\n" *
-                "This means 2 × 2 × 2 × 2 × 2 × 2 × 2 × 2"
+                md"The `^` symbol (caret) means 'to the power of' 
+Type: `2^8`
+This means 2 × 2 × 2 × 2 × 2 × 2 × 2 × 2"
             ),
             Question(
-                "Now let's learn about bindings. You can think of bindings as assigning names to values " *
-                "using the = operator. Create a binding called 'x' to the value 10.",
+                md"Now let's learn about bindings. You can think of bindings as assigning names to values using the `=` operator. Create a binding called `x` to the value `10`.",
                 :code,
                 10,
-                "Bindings let you refer to values for later use.\n" *
-                "Type: x = 10\n" *
-                "The binding name goes on the left, equals sign in the middle, value on the right."
+                md"Bindings let you refer to values for later use.
+Type: `x = 10`
+The binding name goes on the left, equals sign in the middle, value on the right."
             ),
             Question(
-                "Good! Bindings let you reuse values. Now create a binding 'y' " *
-                "with the value 5, then add x and y together.",
+                md"**Good**! Bindings let you reuse values. Now create a binding `y` with the value `5`, then add `x` and `y` together.",
                 Val(:multistep_code),
                 15,
                 "",
                 [
-                    "Create a binding 'y' with value 5",
-                    "Add x and y together"
+                    md"Create a binding `y` with value `5`.",
+                    md"Add `x` and `y` together."
                 ],
                 [
-                    "Type: y = 5\nBindings let you refer to values for later use.",
-                    "Type: x + y\nRemember: x is still 10 from the previous question!"
+                    md"Type: `y = 5`
+Bindings let you refer to values for later use.",
+                    md"Type: `x + y`
+Remember: `x` is still `10` from the previous question!"
                 ],
                 "x = 10"
             ),
             Question(
-                "Excellent! Bindings can be reassigned. Set x to be x * 2 (which should give 20).",
+                md"**Excellent**! Bindings can be reassigned. Set `x` to be `x * 2` (which should give `20`).",
                 :code,
                 20,
-                "You can reassign a binding, even using its old value.\n" *
-                "Type: x = x * 2\n" *
-                "This takes the current value of x (10), multiplies it by 2, and binds the name x to the result (20).\n" *
-                "This is like saying 'x becomes x times 2'",
+                md"You can reassign a binding, even using its old value.
+Type: x = x * 2
+This takes the current value of x (10), multiplies it by 2, and binds the name x to the result (20).
+This is like saying *x becomes x times 2*",
                 "x = 10"
             ),
             Question(
-                "Perfect! You've learned basic math operations and bindings in Julia.",
+                md"**Perfect**! You've learned basic math operations and bindings in Julia.",
                 :message,
                 nothing
             )
@@ -478,82 +477,84 @@ function create_basic_julia_course()
     # Lesson 2: Types and Functions
     lesson2 = Lesson(
         "Types and Functions",
-        "Learn about Julia's type system and how to use functions.",
+        md"# Types and Functions",
+        md"## Learn about Julia's type system and how to use functions.",
         [
             Question(
-                "Julia is a dynamically typed language, but types are very important. " *
-                "You can check the type of any value using the typeof() function.\n\n" *
-                "Try it out: use typeof() to find out what type the number 42 is.",
+                md"# Type inspection
+`Julia` is a dynamically typed language, but types are very important. You can check the type of any value using the `typeof()` function. 
+Try it out: use `typeof()` to find out what type the number `42` is.",
                 :code,
                 Int64,
-                "Functions in Julia are called by putting the argument in parentheses.\n" *
-                "Type: typeof(42)\n" *
-                "The typeof() function tells you what kind of data you have.\n" *
-                "42 is a whole number, so Julia stores it as Int64 (64-bit integer)."
+                md"# Functions  
+Functions in `Julia` are called by putting the argument in parentheses. 
+Type: `typeof(42)`
+The `typeof()` function tells you what kind of data you have.
+`42` is a whole number, so `Julia` stores it as `Int64` (64-bit integer)."
             ),
             Question(
-                "Now check the type of 3.14 (a decimal number).",
+                md"Now check the type of `3.14` (a decimal number).",
                 :code,
                 Float64,
-                "Numbers with decimal points are different from whole numbers.\n" *
-                "Type: typeof(3.14)\n" *
-                "Julia stores decimal numbers as Float64 (64-bit floating-point number).\n" *
-                "This is why 42 and 3.14 have different types!"
+                md"Numbers with decimal points are different from whole numbers.
+Type: `typeof(3.14)`
+`Julia` stores decimal numbers as `Float64` (64-bit floating-point number).
+This is why `42` and `3.14` have different types!"
             ),
             Question(
-                "Strings in Julia are created with double quotes. " *
-                "Check what type \"hello\" is.",
+                md"Strings in Julia are created with double quotes. Check what type `\"hello\"` is.",
                 :code,
                 String,
-                "Text in programming is called a 'string' (a string of characters).\n" *
-                "Type: typeof(\"hello\")\n" *
-                "Important: Use double quotes (\"), not single quotes (').\n" *
-                "In Julia, \"hello\" is a String, but 'h' would be a Char (single character)."
+                md"Text in programming is called a 'string' (a string of characters). Type: `typeof(\"hello\")`
+Important: Use double quotes (\"), not single quotes (`\'`).
+In `Julia`, `\"hello\"` is a `String`, but 'h' would be a Char (single character)."
             ),
             Question(
-                "Julia has many built-in functions. The sqrt() function calculates square roots. " *
-                "Calculate the square root of 16.",
+                md"`Julia` has many built-in functions. The `sqrt()` function calculates square roots.
+Calculate the square root of `16`.",
                 :code,
                 4.0,
-                "The square root of a number n is a value that, when multiplied by itself, gives n.\n" *
-                "Type: sqrt(16)\n" *
-                "Since 4 × 4 = 16, the square root of 16 is 4.\n" *
-                "Note: The result will be 4.0 (a Float), not 4 (an Int)."
+                md"The square root of a number `n` is a value that, when multiplied by itself, gives `n`.
+Type: `sqrt(16)`.
+Since `4 × 4 = 16`, the square root of `16` is `4`.
+Note: The result will be `4.0` (a `Float`), not `4` (an `Int`)."
             ),
             Question(
-                "The abs() function returns the absolute value (removes the negative sign). " *
-                "What is the absolute value of -5?",
+                md"The `abs()` function returns the absolute value (removes the negative sign). What is the absolute value of -5?",
                 :code,
                 5,
-                "The absolute value is the distance from zero, ignoring direction.\n" *
-                "Type: abs(-5)\n" *
-                "abs() removes the negative sign, so -5 becomes 5.\n" *
-                "Think of it as asking 'how far from zero?' (-5 is 5 units away)"
+                md"The absolute value is the distance from zero, ignoring direction.
+Type: `abs(-5)`.
+`abs()` removes the negative sign, so `-5` becomes `5`.
+Think of it as asking 'how far from zero?' (`-5` is `5` units away)."
             ),
             Question(
-                "You can define your own functions! For simple functions, use this syntax:\n" *
-                "    functionname(parameter) = expression\n" *
-                "Creating a function has three parts:\n" *
-                "1. Function name: double\n" *
-                "2. Parameter (input): x\n" *
-                "3. What it does: multiply by 2\n\n" *
-                "Create a function called 'double' that takes one number and returns twice its value. " *
-                "Then test it by calling double(3).",
+                md"You can define your own functions! For simple functions, use this syntax:
+`functionname(parameter) = expression`
+Creating a function has three parts:
+1. Function name: `double`
+2. Parameter (input): `x`
+3. What it does: multiply by `2`
+
+Create a function called `double` that takes one number and returns twice its value. 
+Then test it by calling `double(3)`.",
                 Val(:multistep_code),
                 6,
                 "",
                 [
-                    "Define the function 'double' that returns twice its input",
-                    "Call double(3) to test it"
+                    md"Define the function `double` that returns twice its input",
+                    md"Call `double(3)` to test it."
                 ],
                 [
-                    "Type: double(x) = 2x\nThis creates a function named double that takes one argument x and returns 2 times x.\n" *
-                    "In Julia, you can write 2x instead of 2*x for multiplication!",
-                    "Type: double(3)\nThis should return 6, since double(3) = 2 * 3."
+                    md"Type: `double(x) = 2x`
+This creates a function named `double` that takes one argument `x` and returns `2` times `x`.
+In Julia, you can write `2x` instead of `2*x` for multiplication!
+Type: `double(3)`
+This should return `6`, since `double(3) = 2 * 3`."
                 ]
             ),
             Question(
-                "Great job! You now understand types and functions in Julia.",
+                md"**Great job**! You now understand types and functions in `Julia`.",
                 :message,
                 nothing
             )
@@ -563,83 +564,91 @@ function create_basic_julia_course()
     # Lesson 3: Vectors and Arrays
     lesson3 = Lesson(
         "Vectors and Arrays",
-        "Learn how to work with vectors and arrays, Julia's fundamental data structures.",
+        md"# Vectors and Arrays",
+        md"## Learn how to work with vectors and arrays, `Julia`'s fundamental data structures.",
         [
             Question(
-                "Arrays are collections of values. In Julia, you create a vector (1D array) " *
-                "using square brackets with their members being separated by commas, as in [1,2,3,4,5]. Create a vector with the numbers 10, 20, 30, 40, 50.",
+                md"Arrays are collections of values. 
+In `Julia`, you create a vector (1D array) using square brackets with their members being separated by commas, as in `[1,2,3,4,5]`.
+Create a vector with the numbers 10, 20, 30, 40, 50.",
                 :code,
                 [10, 20, 30, 40, 50],
-                "Arrays let you store multiple values under one name.\n" *
-                "Type: [10, 20, 30, 40, 50]\n" *
-                "Use square brackets [ ] with commas separating the values.\n" *
-                "The order matters: [10, 20, 30, 40, 50] is different from [50, 40, 30, 20, 10]!"
+                md"Arrays let you store multiple values under one name.
+Type: `[10, 20, 30, 40, 50]`
+Use square brackets `[` `]` with commas separating the values.
+The order matters: `[10, 20, 30, 40, 50]` is different from `[50, 40, 30, 20, 10]`!"
             ),
             Question(
-                "You can access elements of an array using square brackets. Julia uses " *
-                "1-based indexing (the first element is at index 1).\n\n" *
-                "First, create a vector: v = [10, 20, 30]\n" *
-                "Then access its first element: v[1]\n",
+                md"You can access elements of an array using square brackets. 
+`Julia` uses 1-based indexing (the first element is at index 1).
+First, create a vector: `v = [10, 20, 30]`.
+Then access its first element: `v[1]`.",
                 Val(:multistep_code),
                 10,
                 "",
                 [
-                    "Create the vector v with values 10, 20, 30",
-                    "Access the first element of v"
+                    md"Create the vector `v` with values `10`, `20`, `30`",
+                    md"Access the first element of `v`"
                 ],
                 [
-                    "Accessing array elements uses the syntax: arrayname[index]\n" *
-                    "Type: v = [10, 20, 30]\nThis creates a vector named v containing the numbers 10, 20, and 30.",
-                    "Type: v[1]\nThis retrieves the first element of v, which is 10." *
-                    "Remember: Julia counts from 1, not 0!\n"
+                    md"Accessing array elements uses the syntax: `arrayname[index]`
+Type: `v = [10, 20, 30]`\nThis creates a vector named `v` containing the numbers `10`, `20`, and `30`.",
+                    md"Type: `v[1]`
+This retrieves the first element of `v`, which is `10`.
+Remember: `Julia` counts from `1`, not `0`!
+"
                 ]
             ),
             Question(
-                "The length() function tells you how many elements are in an array. " *
-                "How many elements does v have?" * "Note: If you’ve just started a new REPL session, you’ll need to define v again. Recall that you assigned v = [10, 20, 30] in the previous question.",
+                md"The `length()` function tells you how many elements are in an array.
+How many elements does `v` have?
+Note: If you’ve just started a new `REPL` session, you’ll need to define `v` again. Recall that you assigned `v = [10, 20, 30]` in the previous question.",
                 :code,
                 3,
-                "The length() function counts how many items are in an array.\n" *
-                "Type: length(v)\n" *
-                "Remember: v was created in the previous question as [10, 20, 30]\n" *
-                "So it has 3 elements: 10, 20, and 30.",
+                md"The `length()` function counts how many items are in an array.
+Type: `length(v)`
+Remember: `v` was created in the previous question as `[10, 20, 30]`
+So it has 3 elements: `10`, `20`, and `30`.",
                 "v = [10, 20, 30]"
             ),
             Question(
-                "You can use the range operator : to create sequences, then collect() to make a vector. " *
-                "Create a vector containing all integers from 1 to 10.",
+                md"You can use the range operator `:` to create sequences, then `collect()` to make a vector.
+Create a vector containing all integers from `1` to `10`.",
                 :code,
                 collect(1:10),
-                "The colon : creates a range (a sequence of numbers).\n" *
-                "Type: collect(1:10)\n\n" *
-                "Breaking it down:\n" *
-                "- 1:10 means 'from 1 to 10'\n" *
-                "- collect() converts the range into an actual array\n" *
-                "This creates [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] automatically!"
+                md"The colon `:` creates a range (a sequence of numbers).
+Type: `collect(1:10)`
+Breaking it down:
+- `1:10` means 'from 1 to 10'
+- `collect()` converts the range into an actual array
+This creates `[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]` automatically!"
             ),
             Question(
-                "Julia has many array functions. The sum() function adds all elements together. " *
-                "What is the sum of the array [1, 2, 3, 4]?",
+                md"Julia has many array functions. The `sum()` function adds all elements together.
+What is the sum of the array `[1, 2, 3, 4]`?",
                 :code,
                 10,
-                "The sum() function adds up all the numbers in an array.\n" *
-                "Type: sum([1, 2, 3, 4])\n" *
-                "This calculates: 1 + 2 + 3 + 4 = 10\n" *
-                "It's a shortcut so you don't have to add them manually!"
+                md"The `sum()` function adds up all the numbers in an array.
+Type: `sum([1, 2, 3, 4])`
+This calculates: `1 + 2 + 3 + 4 = 10`
+It's a shortcut so you don't have to add them manually!
+Type: `sum([1, 2, 3, 4])`
+This calculates: `1 + 2 + 3 + 4 = 10`
+It's a shortcut so you don't have to add them manually!"
             ),
             Question(
-                "You can add one or more elements to the end of an array using push!(). The function takes the array as its first argument and the element(s) to be added as the next argument(s) separated by commas." *
-                "Add the number 6 to the end of [1, 2, 3, 4, 5].",
+                md"You can add one or more elements to the end of an array using `push!()`. The function takes the array as its first argument and the element(s) to be added as the next argument(s) separated by commas.
+Add the number `6` to the end of `[1, 2, 3, 4, 5]`.",
                 :code,
                 [1, 2, 3, 4, 5, 6],
-                "The push!() function adds an item to the end of an array.\n" *
-                "Type: push!([1, 2, 3, 4, 5], 6)\n\n" *
-                "The syntax is: push!(array, new_element)\n" *
-                "The exclamation mark ! means it modifies the array.\n" *
-                "This will turn [1, 2, 3, 4, 5] into [1, 2, 3, 4, 5, 6]"
+                md"The `push!()` function adds an item to the end of an array.
+Type: `push!([1, 2, 3, 4, 5], 6)`
+The syntax is: `push!(array, new_element)`
+The exclamation mark `!` means it modifies the array.
+This will turn `[1, 2, 3, 4, 5]` into `[1, 2, 3, 4, 5, 6]`"
             ),
             Question(
-                "Excellent! You've learned the basics of working with arrays in Julia.",
+                md"**Excellent**! You've learned the basics of working with arrays in `Julia`.",
                 :message,
                 nothing
             )
