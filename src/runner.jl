@@ -277,7 +277,6 @@ function display_question(state::ReplLessonState)
     println()
 
     if isa(question, OutputOnly)
-        state.current_question_idx += 1
         show_question(question)
 
         # Automatically advance after message - no need to wait for input

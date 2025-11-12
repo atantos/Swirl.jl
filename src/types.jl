@@ -123,6 +123,7 @@ StringQ(;text="", answer="", hint="", validator=nothing) =
 
 function check_answer(user_answer, question::StringQ)
     user_answer = String(user_answer)
+    answer = question.answer
 
     if isa(answer, AbstractString)
         # Strings are bit off with this REPL experience
