@@ -34,7 +34,7 @@ function get_available_courses()
         if isfile(course_file)
             try
                 # Load the course by including the file
-                course = include(course_file)
+                course = Main.include(course_file)
 
                 # Verify it's a Course object
                 if isa(course, Course)
@@ -106,7 +106,7 @@ function install_course_from_local(source_path::String, courses_dir::String)
 
     # Try to load the course to validate it
     try
-        course = include(course_file)
+        course = Main.include(course_file)
 
         if !isa(course, Course)
             println("❌ Error: course.jl did not return a Course object")
@@ -409,7 +409,7 @@ function create_basic_julia_course()
         md"## Learn basic arithmetic operations and how to create bindings in Julia.",
         [
             Question(
-                md"*Welcome to Swirl* for `Julia`! 
+                md"*Welcome to Swirl* for `Julia`!
 In this lesson, you'll learn the basics of `Julia` programming. We'll start with simple math operations and bindings. Let's begin! `Julia` can be used as a calculator. Try adding `5 + 3`.",
                 :code,
                 8,
@@ -427,7 +427,7 @@ Type: `7 * 6`"
                 md"`Julia` uses `^` for exponentiation. Calculate `2` raised to the power of `8`.",
                 :code,
                 256,
-                md"The `^` symbol (caret) means 'to the power of' 
+                md"The `^` symbol (caret) means 'to the power of'
 Type: `2^8`
 This means 2 × 2 × 2 × 2 × 2 × 2 × 2 × 2"
             ),
@@ -482,12 +482,12 @@ This is like saying *x becomes x times 2*",
         [
             Question(
                 md"# Type inspection
-`Julia` is a dynamically typed language, but types are very important. You can check the type of any value using the `typeof()` function. 
+`Julia` is a dynamically typed language, but types are very important. You can check the type of any value using the `typeof()` function.
 Try it out: use `typeof()` to find out what type the number `42` is.",
                 :code,
                 Int64,
-                md"# Functions  
-Functions in `Julia` are called by putting the argument in parentheses. 
+                md"# Functions
+Functions in `Julia` are called by putting the argument in parentheses.
 Type: `typeof(42)`
 The `typeof()` function tells you what kind of data you have.
 `42` is a whole number, so `Julia` stores it as `Int64` (64-bit integer)."
@@ -536,7 +536,7 @@ Creating a function has three parts:
 2. Parameter (input): `x`
 3. What it does: multiply by `2`
 
-Create a function called `double` that takes one number and returns twice its value. 
+Create a function called `double` that takes one number and returns twice its value.
 Then test it by calling `double(3)`.",
                 Val(:multistep_code),
                 6,
@@ -568,7 +568,7 @@ This should return `6`, since `double(3) = 2 * 3`."
         md"## Learn how to work with vectors and arrays, `Julia`'s fundamental data structures.",
         [
             Question(
-                md"Arrays are collections of values. 
+                md"Arrays are collections of values.
 In `Julia`, you create a vector (1D array) using square brackets with their members being separated by commas, as in `[1,2,3,4,5]`.
 Create a vector with the numbers 10, 20, 30, 40, 50.",
                 :code,
@@ -579,7 +579,7 @@ Use square brackets `[` `]` with commas separating the values.
 The order matters: `[10, 20, 30, 40, 50]` is different from `[50, 40, 30, 20, 10]`!"
             ),
             Question(
-                md"You can access elements of an array using square brackets. 
+                md"You can access elements of an array using square brackets.
 `Julia` uses 1-based indexing (the first element is at index 1).
 First, create a vector: `v = [10, 20, 30]`.
 Then access its first element: `v[1]`.",
