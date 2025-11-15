@@ -716,24 +716,24 @@ function process_answer(state::ReplLessonState, input::AbstractString)
         return
     end
 
-    if !isaquestion(q)
-        advance_to_next_question(state)
-        return
-    end
-
     # Regular questions
-    state.current_attempts += 1
     result = check_answer(input, q)
+    state.current_attempts += 1
+
 
     res = isa(result, NamedTuple) ?  result.correct : result
 
     if res == true
-        println("✓ Correct!")
-        println()
-        state.progress.correct_answers += 1
+        if isaquestion(q)
+            println("✓ Correct!")
+            println()
+            state.progress.correct_answers += 1
+        end
         advance_to_next_question(state)
     else
-        println("✗ Not quite right.")
+        if isaquestion(q)
+            println("✗ Not quite right.")
+        end
         handle_incorrect_answer(state)
     end
 
