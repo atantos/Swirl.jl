@@ -1,6 +1,17 @@
 # Base type for questions
 abstract type AbstractQuestion end
 
+## type for display only -- doesn't wait for prompt
+abstract type OutputOnly <: AbstractQuestion end
+
+## type for display with confirmation---but not a question
+abstract type HasPrompt <: AbstractQuestion end
+abstract type InputOutputOnly <: HasPrompt end
+
+## type for Questions
+abstract type QuestionType <: HasPrompt end
+
+## AbstractQuestion base methods
 function show_question(question::AbstractQuestion)
     txt = isa(question.text, Base.Callable) ? question.text() : question.text
     _show(txt)
@@ -9,38 +20,41 @@ end
 
 _show_question(q::AbstractQuestion) = nothing
 
-function _show_hint(q::AbstractQuestion)
-    hint = isa(q.hint, Base.Callable) ? q.hint() : q.hint
-    if !isempty(hint)
-        print("💡 Hint: "); _show(hint)
-    end
-end
-
-function check_answer(input, question::AbstractQuestion)
+## HasPrompt base methods
+## process prompt
+function check_answer(input, question::HasPrompt)
     if hasproperty(question, :validator) && !isnothing(question.validator)
-        question.validator(input, question.answer)
+        question.validator(input, question) # not sure what to pass of question
     else
         _check_answer(input, question)
     end
 end
 
+## QuestionType base methods
+function _show_hint(q::QuestionType)
+    hint = isa(q.hint, Base.Callable) ? q.hint() : q.hint
+    if !isempty(hint)
+        print("💡 Hint: ")
+        _show(hint)
+    end
+end
+
 # Question type trait indicating if question type should
 # be scored
-isaquestion(::AbstractQuestion) = true
+isaquestion(::AbstractQuestion) = false
+isaquestion(::QuestionType) = true
 
-## type for display only (must filter out of question count)
-abstract type OutputOnly <: AbstractQuestion end
-check_answer(input, ::OutputOnly) = true
-isaquestion(::OutputOnly) = false
+## -- OutputOnly
+## Doesn't wait for a prompt
 
-# for a message (doesn't wait for prompt)
+# for a message
 struct MessageQ <: OutputOnly
     text
 end
 MessageQ(;text="") = MessageQ(text)
 
 ## Include a file, e.g. one to generate a plot
-## open a link, such as a video, if user says yes
+## (how to include file with relative path?)
 struct FileIncludeQ <: OutputOnly
     text
     file
@@ -53,9 +67,11 @@ function _show_question(q::FileIncludeQ)
     println("")
 end
 
+## -- QuestionType
+## Questions where answer is given at prompt; these are counted
 
 ## Type for Code questions
-abstract type CodeQuestion <: AbstractQuestion end
+abstract type CodeQuestion <: QuestionType end
 
 # default validator for code
 function _check_answer(user_answer::AbstractString, question::CodeQuestion)
@@ -145,7 +161,7 @@ Match an user answer as strings.
 * `text::{StringLike, Callable}`: text to display before question prompt; callable values are called with no arguments prior.
 * `answer::{AbstractString, Regex, Callable}`: The default validtor depends on the type specified for `answer`. For strings an exact match is used, for Regular expressions `match` is used, otherwise `answer` is assumed to be a callable and the user answer is passed to it.
 """
-struct StringQ <: AbstractQuestion
+struct StringQ <: QuestionType
     text
     answer # string, regexp, function
     hint
@@ -185,7 +201,7 @@ Compare answer numerically
 
 * `answer::{Number, Tuple, Container}:` The default validation depends on the type of the sepcified `answer`. If answer is a number, an exact match on the user answer is made; if answer is a tuple, it is assumed to specify an interval, `(a,b)`, for which `a ≤ user_answer ≤ b` return true; otherwise, the test is `user_answer ∈ answer`, that is `answer` is a container of possible correct answers.
 """
-struct NumberQ <: AbstractQuestion
+struct NumberQ <: QuestionType
     text
     answer # number, tuple--interval, container
     hint
@@ -225,7 +241,7 @@ Compares user choice (as an integer) to answer.
 * `choices::{Iterable}` iterable containing each choice specified as string or a callable that returns a string.
 
 """
-abstract type ChoiceQuestion <: AbstractQuestion end
+abstract type ChoiceQuestion <: QuestionType end
 function _show_question(question::ChoiceQuestion)
     println("")
     for (i, choice) in enumerate(question.choices)
@@ -283,8 +299,11 @@ function check_answer(user_input, question::MultipleChoiceQ)
     end
 end
 
+## --- InputOutputOnly
+## has prompt, but not a question. For example, for confirmation
+
 ## open a link, such as a video, if user says yes
-struct LinkQ <: AbstractQuestion
+struct LinkQ <: InputOutputOnly
     text
     link
 end
