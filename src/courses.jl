@@ -34,7 +34,7 @@ function get_available_courses()
         if isfile(course_file)
             try
                 # Load the course by including the file
-                course = include(course_file)
+                course = Main.include(course_file)
 
                 # Verify it's a Course object
                 if isa(course, Course)
@@ -106,7 +106,7 @@ function install_course_from_local(source_path::String, courses_dir::String)
 
     # Try to load the course to validate it
     try
-        course = include(course_file)
+        course = Main.include(course_file)
 
         if !isa(course, Course)
             println("❌ Error: course.jl did not return a Course object")
@@ -521,7 +521,7 @@ Creating a function has three parts:
 2. Parameter (input): `x`
 3. What it does: multiply by `2`
 
-Create a function called `double` that takes one number and returns twice its value. 
+Create a function called `double` that takes one number and returns twice its value.
 Then test it by calling `double(3)`.",
                 answer=6,
                 hint="",

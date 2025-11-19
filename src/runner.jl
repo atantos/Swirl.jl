@@ -139,18 +139,15 @@ function run_lesson_repl_mode(course_name::String, lesson::Lesson)
     return true
 end
 
-# Announce which question if somethign to ask
+# Announce which question if something to ask
 function display_lesson_progress(q::AbstractQuestion, state)
-    # n = count(q -> isa(q, OutputOnly), state.lesson.questions)
-    if state.current_question_idx == 1
-        n = 0
-    else
-        n = count(q -> isa(q, OutputOnly), state.lesson.questions[1:state.current_question_idx-1])
-    end
-    # Total non-OutputOnly questions
-    N = count(q -> !isa(q, OutputOnly), state.lesson.questions)
+    isaquestion(q) || return nothing
 
-    println("\n--- Question $(state.current_question_idx - n) of $N ---")
+    m = count(isaquestion,
+        state.lesson.questions[1:state.current_question_idx])
+    N = count(isaquestion, state.lesson.questions)
+
+    println("\n--- Question $m of $N ---")
     println()
 end
 display_lesson_progress(q::OutputOnly, state) = nothing
@@ -734,6 +731,27 @@ function process_answer(state::ReplLessonState, input::AbstractString)
         end
 
         return
+    end
+
+    # Regular questions
+    result = check_answer(input, q)
+    state.current_attempts += 1
+
+
+    res = isa(result, NamedTuple) ? result.correct : result
+
+    if res == true
+        if isaquestion(q)
+            println("✓ Correct!")
+            println()
+            state.progress.correct_answers += 1
+        end
+        advance_to_next_question(state)
+    else
+        if isaquestion(q)
+            println("✗ Not quite right.")
+        end
+        handle_incorrect_answer(state)
     end
 
     #=

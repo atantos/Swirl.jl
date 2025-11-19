@@ -1,6 +1,23 @@
 # Base type for questions
 abstract type AbstractQuestion end
 
+## type for display only -- doesn't wait for prompt
+"""
+    OutputOnly <: AbstractQuestion
+
+Abstract type for questions that only display information (no answer required).
+These questions are not counted in scoring.
+"""
+abstract type OutputOnly <: AbstractQuestion end
+
+## type for display with confirmation---but not a question
+abstract type HasPrompt <: AbstractQuestion end
+abstract type InputOutputOnly <: HasPrompt end
+
+## type for Questions
+abstract type QuestionType <: HasPrompt end
+
+## AbstractQuestion base methods
 """
     show_question(question::AbstractQuestion)
 
@@ -16,43 +33,37 @@ end
 # Default: no additional display after text
 _show_question(q::AbstractQuestion) = nothing
 
-# Generic version - takes only question, no state
-"""
-    _show_hint(q::AbstractQuestion [, state])
-
-Display hint for a question. 
-For most questions, uses the hint field directly.
-For multistep questions, may need state to show step-specific hints.
-"""
-function _show_hint(q::AbstractQuestion)
-    hint = isa(q.hint, Base.Callable) ? q.hint() : q.hint
-    if !isempty(hint)
-        print("💡 Hint: ")
-        _show(hint)
-    else
-        println("💡 No hint available for this question.")
-    end
-end
-
-function check_answer(input, question::AbstractQuestion)
+## HasPrompt base methods
+## process prompt
+function check_answer(input, question::HasPrompt)
     if hasproperty(question, :validator) && !isnothing(question.validator)
-        question.validator(input, question.answer)
+        question.validator(input, question) # not sure what to pass of question
     else
         _check_answer(input, question)
     end
 end
 
-## type for display only (must filter out of question count)
-"""
-    OutputOnly <: AbstractQuestion
-
-Abstract type for questions that only display information (no answer required).
-These questions are not counted in scoring.
-"""
-abstract type OutputOnly <: AbstractQuestion end
-
 # OutputOnly questions always return true (no wrong answer)
 check_answer(input, ::OutputOnly) = true
+
+## QuestionType base methods
+function _show_hint(q::QuestionType)
+    hint = isa(q.hint, Base.Callable) ? q.hint() : q.hint
+    if !isempty(hint)
+        print("💡 Hint: ")
+        _show(hint)
+    end
+end
+
+# Question type trait indicating if question type should
+# be scored
+isaquestion(::AbstractQuestion) = false
+isaquestion(::QuestionType) = true
+
+## -- OutputOnly
+## Doesn't wait for a prompt
+
+# for a message
 
 """
     MessageQ <: OutputOnly
@@ -66,13 +77,30 @@ end
 # Constructor with keyword argument (not necessary but for consistency  with others)
 MessageQ(; text="") = MessageQ(text)
 
+## Include a file, e.g. one to generate a plot
+## (how to include file with relative path?)
+struct FileIncludeQ <: OutputOnly
+    text
+    file
+end
+FileIncludeQ(; text="", file="") = FileIncludeQ(text, file)
 
+function _show_question(q::FileIncludeQ)
+    f = expanduser(q.file)
+    isfile(f) && Main.include(expanduser(q.file))
+    println("")
+end
+
+## -- QuestionType
+## Questions where answer is given at prompt; these are counted
+
+## Type for Code questions
 """
     CodeQuestion <: AbstractQuestion
 
 Abstract base type for questions that require code execution.
 """
-abstract type CodeQuestion <: AbstractQuestion end
+abstract type CodeQuestion <: QuestionType end
 
 """
 Default validator for code questions.
@@ -125,15 +153,14 @@ CodeQ(
 struct CodeQ <: CodeQuestion
     text
     answer
+    answer_test # swirl.R makes use of this
     hint
     validator
     setup
 end
 
-# Constructor with keyword arguments and defaults
-CodeQ(; text="", answer="", hint="", validator=nothing, setup="") =
-    CodeQ(text, answer, hint, validator, setup)
-
+CodeQ(; text="", answer="", answer_test="", hint="", validator=nothing, setup="") =
+    CodeQ(text, answer, answer_test, hint, validator, setup)
 
 """
     MultistepCodeQ <: CodeQuestion
@@ -175,6 +202,7 @@ MultistepCodeQ(
 struct MultistepCodeQ <: CodeQuestion
     text
     answer
+    # answer_test
     hint
     steps
     step_hints
@@ -243,7 +271,7 @@ StringQ(text="Name a programming language", answer=r"Julia|Python|Rust")
 StringQ(text="Enter a greeting", answer = s -> startswith(lowercase(s), "hello"))
 ```
 """
-struct StringQ <: AbstractQuestion
+struct StringQ <: QuestionType
     text
     answer # string, regexp, function
     hint
@@ -323,13 +351,12 @@ Compares user choice (as an integer) to answer.
 * `choices::{Iterable}` iterable containing each choice specified as string or a callable that returns a string.
 
 """
-abstract type ChoiceQuestion <: AbstractQuestion end
-
-# Display choices after question text
+abstract type ChoiceQuestion <: QuestionType end
 function _show_question(question::ChoiceQuestion)
+    println("")
     for (i, choice) in enumerate(question.choices)
         txt = isa(choice, Base.Callable) ? choice() : choice
-        print("  $i.")
+        print("  $i. ")
         _show(txt)
     end
     println()
@@ -405,13 +432,39 @@ MultipleChoiceQ(; text="", choices=String[], answer=Int[], hint="", validator=no
 
 function check_answer(user_input, question::MultipleChoiceQ)
     try
-        user_answer = parse.(Int, split(user_input, ","))
+        user_answer = parse.(Int, split(user_input, r",\s*|\s+"))
         return sort(user_answer) == sort(question.answer)
     catch
         println("Please enter comma-separated numbers for your selections (e.g., '1,3,4')")
         return false
     end
 end
+
+## --- InputOutputOnly
+## has prompt, but not a question. For example, for confirmation
+
+## open a link, such as a video, if user says yes
+struct LinkQ <: InputOutputOnly
+    text
+    link
+end
+LinkQ(; text="", link="") = LinkQ(text, link)
+
+isaquestion(::LinkQ) = false
+
+function _show_question(::LinkQ)
+    println("")
+    println("Open link? (yes/no)", "")
+end
+
+function _check_answer(user_answer::AbstractString, question::LinkQ)
+    if !startswith(lowercase(user_answer), "n")
+        run(`open $(question.link)`)
+    end
+    return true
+end
+
+
 
 # ============================================================================
 # Backward Compatibility - Old Question() Constructor Style
@@ -454,7 +507,7 @@ function Question(text, type::Symbol, answer, hint="", setup="")
     if type == :message
         return MessageQ(text)
     elseif type == :code
-        return CodeQ(text, answer, hint, validator, setup)
+        return CodeQ(text, answer, "", hint, validator, setup)
     elseif type == :exact
         if isa(answer, Number)
             return NumberQ(text, answer, hint, validator, setup)
@@ -479,7 +532,7 @@ function Question(text, type::Symbol, answer, hint, choices::Vector,
     elseif type == :multiple_choice
         return ChoiceQ(text, choices, answer, hint, validator, setup)
     elseif type == :code
-        return CodeQ(text, answer, hint, validator, setup)
+        return CodeQ(text, answer, "", hint, validator, setup)
     elseif type == :exact
         if isa(answer, Number)
             return NumericQ(text, answer, hint, validator, setup)
@@ -502,7 +555,7 @@ function Question(text::MDLike, ::Val{:multistep_code}, answer, hint::MDLike,
     if isempty(step_hints)
         step_hints = fill("", length(steps))
     end
-    MultistepCodeQ(text, answer, hint,
+    MultistepCodeQ(text, answer, "", hint,
         steps, step_hints, length(steps),
         nothing, setup)
 end
