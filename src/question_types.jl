@@ -487,7 +487,7 @@ Converts old `:type` symbol style to new dispatch-based types.
 # Supported types
 - `:message` -> MessageQ
 - `:code` -> CodeQ  
-- `:exact` -> StringQ or NumberQ (depending on answer type)
+- `:exact` -> StringQ or Numbe (depending on answer type)
 
 # Examples
 ```julia
@@ -510,7 +510,7 @@ function Question(text, type::Symbol, answer, hint="", setup="")
         return CodeQ(text, answer, "", hint, validator, setup)
     elseif type == :exact
         if isa(answer, Number)
-            return NumberQ(text, answer, hint, validator, setup)
+            return Numbe(text, answer, hint, validator, setup)
         else
             return StringQ(text, answer, hint, validator, setup)
         end
