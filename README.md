@@ -365,26 +365,22 @@ ExactQ("What keyword defines a function?", "function")
 ### Multi-Step Code
 Students can build on previous work since variable bindings persist between questions.
 ```julia
-# Question 1: Create a variable
-CodeQ(
-    "Create a variable x and set it to 5",
-    5,
-    "Type: x = 5"
-)
-
-# Question 2: Use the variable from Question 1
-CodeQ(
-    "Now multiply x by 2",
-    10,                    # Result based on x = 5
-    "Type: x * 2"
-)
-
-# Or use MultistepCodeQ for complex multi-step operations
 MultistepCodeQ(
-    "First create x = 5, then create y = 10, finally return x + y",
-    15,
-    "Use semicolons to separate: x = 5; y = 10; x + y"
-)
+                text=md"**Good**! Bindings let you reuse values. Now create a binding `y` with the value `5`, then add `x` and `y` together.",
+                answer=15,
+                hint="",
+                steps=[
+                    md"Create a binding `y` with value `5`.",
+                    md"Add `x` and `y` together."
+                ],
+                step_hints=[
+                    md"Type: `y = 5`
+Bindings let you refer to values for later use.",
+                    md"Type: `x + y`
+Remember: `x` is still `10` from the previous question!"
+                ],
+                setup="x = 10"
+            )
 ```
 
 ## 📚 Package Structure
