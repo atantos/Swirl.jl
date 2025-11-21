@@ -8,8 +8,15 @@ Safely evaluate a string of Julia code and return the result.
 function safe_eval(code_str::AbstractString)
     code_str = String(code_str)
     try
-        # Parse the code
-        expr = Meta.parse(code_str)
+        # Check if there are multiple lines/statements
+        if occursin('\n', code_str) || occursin(';', code_str)
+            # Parse all statements together
+            block_str = "begin\n$(code_str)\nend"
+            expr = Meta.parseall(block_str)  # ← Changed from Meta.parse to Meta.parseall
+        else
+            # Single expression
+            expr = Meta.parse(code_str)
+        end
 
         # Evaluate in Main module so variables persist
         result = Core.eval(Main, expr)
@@ -20,6 +27,7 @@ function safe_eval(code_str::AbstractString)
     end
 end
 
+#=
 """
     check_answer(user_answer, expected_answer, question_type)
 
@@ -56,7 +64,7 @@ function check_answer(user_answer::AbstractString, expected_answer, question_typ
 
     return false
 end
-
+=#
 """
     execute_code_silently(code)
 

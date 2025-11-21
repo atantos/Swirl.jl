@@ -8,9 +8,11 @@ using ReplMaker
 export swirl, install_course, uninstall_course, list_courses, delete_progress
 
 # Core types
+include("utils.jl")
 include("types.jl")
 include("progress.jl")
 include("parser.jl")
+include("question_types.jl")
 include("runner.jl")
 include("courses.jl")
 

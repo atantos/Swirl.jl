@@ -1,10 +1,7 @@
 # Core data structures for Swirl
 
-using Markdown
 
-const MDLike = Union{String,Markdown.MD}
-
-
+#=
 """
 A question in a Swirl lesson. Can be multiple choice or require code evaluation.
 
@@ -27,6 +24,8 @@ mutable struct Question
     required_steps::Int  # Number of steps required
     setup::String  # Code to run before the question to set up variables of a previous julia session
 end
+
+Question(text, type, answer, hint="") = Question(text, type, answer, hint, String[], nothing)
 
 # Multistep convenience ctor — accepts Vector{String} and delegates to the 10-arg ctor
 function Question(text::MDLike,
@@ -52,15 +51,15 @@ function Question(text::MDLike, ::Val{:multistep_code}, answer, hint::MDLike, st
     end
     Question(text, :multistep_code, answer, hint, MDLike[], nothing, steps, step_hints, length(steps), setup)
 end
-
+=#
 """
 A lesson containing a sequence of questions.
 """
-struct Lesson
+struct Lesson{VQ}
     name::String             # identity (progress keys, directory names, menus)
     title::MDLike            # displayed title (can be Markdown)
     description::MDLike
-    questions::Vector{Question}
+    questions::VQ #Vector{Question}
 end
 
 """
@@ -87,4 +86,3 @@ end
 
 LessonProgress(course::String, lesson::String) =
     LessonProgress(course, lesson, 1, false, 0, 0, Dict{Int,Int}())
-
