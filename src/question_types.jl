@@ -67,7 +67,7 @@ isaquestion(::QuestionType) = true
 
 """
     MessageQ <: OutputOnly
-    
+
 Display a message to the user with no answer required.
 """
 struct MessageQ <: OutputOnly
@@ -96,7 +96,7 @@ end
 
 ## Type for Code questions
 """
-    CodeQuestion <: AbstractQuestion
+    CodeQuestion <: QuestionType
 
 Abstract base type for questions that require code execution.
 """
@@ -153,14 +153,13 @@ CodeQ(
 struct CodeQ <: CodeQuestion
     text
     answer
-    answer_test # swirl.R makes use of this
     hint
     validator
     setup
 end
 
-CodeQ(; text="", answer="", answer_test="", hint="", validator=nothing, setup="") =
-    CodeQ(text, answer, answer_test, hint, validator, setup)
+CodeQ(; text="", answer="", hint="", validator=nothing, setup="") =
+    CodeQ(text, answer,  hint, validator, setup)
 
 """
     MultistepCodeQ <: CodeQuestion
@@ -186,7 +185,7 @@ MultistepCodeQ(
     hint = "Use recursion or a loop",
     steps = [
         "Define the function signature",
-        "Implement the base case", 
+        "Implement the base case",
         "Implement the recursive case",
         "Test with factorial(5)"
     ],
@@ -202,7 +201,6 @@ MultistepCodeQ(
 struct MultistepCodeQ <: CodeQuestion
     text
     answer
-    # answer_test
     hint
     steps
     step_hints
@@ -248,7 +246,7 @@ function _show_hint(q::MultistepCodeQ, state)
 end
 
 """
-    StringQ(text, answer, hint, [validator]) <: AbstractQuestion
+    StringQ(text, answer, hint, [validator]) <: QuestionType
 
 Match user answer as string. Supports exact matching, regex matching, or custom validators.
 
@@ -264,7 +262,7 @@ Match user answer as string. Supports exact matching, regex matching, or custom 
 # Exact match
 StringQ(text="What is the capital of France?", answer="Paris")
 
-# Regex match  
+# Regex match
 StringQ(text="Name a programming language", answer=r"Julia|Python|Rust")
 
 # Custom validator
@@ -305,13 +303,13 @@ end
 
 
 """
-    NumericQ(text, answer, hint, [validator]) <: AbstractQuestion
+    NumericQ(text, answer, hint, [validator]) <: QuestionType
 
 Compare answer numerically
 
 * `answer::{Number, Tuple, Container}:` The default validation depends on the type of the sepcified `answer`. If answer is a number, an exact match on the user answer is made; if answer is a tuple, it is assumed to specify an interval, `(a,b)`, for which `a ≤ user_answer ≤ b` return true; otherwise, the test is `user_answer ∈ answer`, that is `answer` is a container of possible correct answers.
 """
-struct NumericQ <: AbstractQuestion
+struct NumericQ <: QuestionType
     text
     answer # number, tuple--interval, container
     hint
@@ -486,7 +484,7 @@ Converts old `:type` symbol style to new dispatch-based types.
 
 # Supported types
 - `:message` -> MessageQ
-- `:code` -> CodeQ  
+- `:code` -> CodeQ
 - `:exact` -> StringQ or Numbe (depending on answer type)
 
 # Examples
@@ -532,7 +530,7 @@ function Question(text, type::Symbol, answer, hint, choices::Vector,
     elseif type == :multiple_choice
         return ChoiceQ(text, choices, answer, hint, validator, setup)
     elseif type == :code
-        return CodeQ(text, answer, "", hint, validator, setup)
+        return CodeQ(text, answer, hint, validator, setup)
     elseif type == :exact
         if isa(answer, Number)
             return NumericQ(text, answer, hint, validator, setup)
