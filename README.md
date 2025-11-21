@@ -106,67 +106,78 @@ While working through a lesson, you can use these commands:
 
 ```julia
 julia> using Swirl
-
 julia> swirl()
+🌀 Welcome to Swirl for Julia!
+  ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
 
-============================================================
-| Welcome to Swirl for Julia! 🌀
-============================================================
+  Type ) to enter Swirl mode. (Press backspace anytime to exit Swirl mode.)
 
-🌀 Type ')' to enter Swirl mode!
-   (Press backspace anytime to exit Swirl mode)
+  Available courses
+  =================
+    1. Julia Basics
 
-Available courses:
-  1. Julia Basics
- -1. Exit Swirl
+  ─────────────────────────────────────────────────────────────────────────────────────────────────────
+  ⚙️ Commands
+  ––––––––––
+    •  -1 — Exit Swirl
 
-💡 Select a course (enter number):
-
-swirl> 1
-
-============================================================
-Lessons in Julia Basics:
-============================================================
-  1. [ ] Basic Math and Bindings
-  2. [ ] Types and Functions
-  3. [ ] Vectors and Arrays
-
-Commands:
-  0. Back to course selection
- -1. Exit Swirl
-  reset <number> - Reset a specific lesson (e.g., 'reset 1')
-  reset all - Reset all lessons in this course
-
-💡 Type a lesson number or command:
+  💡 Select a course (enter number):
 
 swirl> 1
+  📘 Lessons in Julia Basics
+  ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
 
-============================================================
-| Basic Math and Bindings
-============================================================
-Learn basic arithmetic operations and how to create bindings in Julia.
+    1. [✓] Basic Math and Bindings
+    2. [ ] Types and Functions
+    3. [ ] Vectors and Arrays ← in progress
 
---- Question 1 of 7 ---
+  ─────────────────────────────────────────────────────────────────────────────────────────────────────
+  ⚙️ Commands
+  ––––––––––
+    •  0 — Back to course selection
+    •  -1 — Exit Swirl
+    •  reset <number> — Reset a specific lesson (e.g. reset 1)
+    •  reset all — Reset all lessons in this course
 
-Welcome to Swirl for Julia! In this lesson, you'll learn the basics of
-Julia programming. We'll start with simple math operations and bindings.
+  💡 Type a lesson number or command:
 
-Let's begin! Julia can be used as a calculator. Try adding 5 + 3.
+swirl> 2
+  Types and Functions
+  ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
+  Learn about Julia's type system and how to use functions.
+  =========================================================
 
-swirl> 5 + 3
+--- Question 3 of 6 ---
+
+  Strings in Julia are created with double quotes. Check what type "hello" is.
+
+swirl> typeof("hello")
+String
+
 ✓ Correct!
 
---- Question 2 of 7 ---
+--- Question 4 of 6 ---
 
-Great! Now try multiplication. What is 7 * 6?
+  Julia has many built-in functions. The sqrt() function calculates square roots. Calculate the square
+  root of 16.
 
-swirl> hint
-💡 Hint: In Julia, multiplication uses the asterisk symbol: *
-Type: 7 * 6
-(Note: Unlike some languages, you can't skip the * symbol, so '7 6' won't work)
+swirl> menu
+💾 Saving progress and returning to lesson menu...
+  📘 Lessons in Julia Basics
+  ≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡
 
-swirl> 7 * 6
-✓ Correct!
+    1. [✓] Basic Math and Bindings
+    2. [ ] Types and Functions ← in progress
+    3. [ ] Vectors and Arrays
+
+  ─────────────────────────────────────────────────────────────────────────────────────────────────────
+  ⚙️ Commands
+  ––––––––––
+    •  0 — Back to course selection
+    •  -1 — Exit Swirl
+    •  reset <number> — Reset a specific lesson (e.g. reset 1)
+    •  reset all — Reset all lessons in this course
+  💡 Type a lesson number or command:
 
 ...
 ```
@@ -271,22 +282,29 @@ swirl()
 
 2. **Edit the course:**
 
-   ```julia
+```julia
    Course(
-       "My Awesome Course",
+       "My Awesome Beginners' Course",
        "Description of what students will learn",
        [
-           Lesson("Lesson 1", "Description", [
-               Question("Welcome!", :message, nothing),
-               Question("Calculate 1+1", :code, 2, "Type: 1+1"),
-               # ... more questions
-           ]),
+           Lesson(
+        "Basic Math and Bindings",
+        md"# Basic Math and Bindings",
+        md"## Learn basic arithmetic operations and how to create bindings in Julia.",
+        [
+            CodeQ(
+                text=md"*Welcome to Swirl* for `Julia`! In this lesson, you'll learn the basics of `Julia` programming. We'll start with simple math operations and bindings. Let's begin! `Julia` can be used as a calculator. Try adding `5 + 3`.",
+                answer=8,
+                hint=md"Simply type the numbers and the plus sign: `5 + 3`
+   `Julia` will evaluate the expression and show you the result."
+            ),
            # ... more lessons
        ]
    )
-   ```
+```
 
 3. **Install and test:**
+
    ```julia
    install_course(expanduser("~/my_course"))
    swirl()
@@ -294,56 +312,78 @@ swirl()
 
 ### Question Types
 
-**Message (Information Only):**
+### Message (Information Only)
 
-```julia
-Question("Welcome to this lesson!", :message, nothing)
+Display informational content without requiring an answer. Students simply press Enter to continue.
+```
+MessageQ("Welcome to this lesson!")
 ```
 
-**Code Execution:**
+### Code Execution
+Ask students to write Julia code and check if the result matches the expected answer.
 
 ```julia
-Question(
+CodeQ(
     "Calculate 2 + 2",
-    :code,
     4,              # Expected result
-    "Type: 2 + 2"   # Hint
+    "Type: 2 + 2"   # Hint (optional)
 )
 ```
 
-**Multiple Choice:**
+### Multiple Choice
+
+Present students with multiple options to choose from. Students enter the number corresponding to their choice.
 
 ```julia
-# Helper function (recommended)
-mc(q, choices, correct_idx, hint="") =
-    Question(q, :multiple_choice, correct_idx, hint, choices, nothing)
+MultipleChoiceQ(
+    "What operator is used for exponentiation?",
+    ["*", "**", "^", "pow"], # Choices array
+    3,                       # Index of correct answer (1-based)
+    "It's the ^ symbol"      # Hint (optional)
+)
 
-mc(
+# Without hint
+MultipleChoiceQ(
     "What is Julia?",
     ["A programming language", "A person", "A city"],
-    1,              # Correct answer (1-based indexing)
-    "It's for programming!"
-)
-
-# Or use the full constructor directly:
-Question(
-    "What operator is used for exponentiation?",
-    :multiple_choice,
-    3,                      # Index of correct answer
-    "It's the ^ symbol",    # Hint
-    ["*", "**", "^", "pow"], # Choices array
-    nothing                 # Validator (usually nothing)
+    1
 )
 ```
-
-**Multi-Step Code:**
-
+### Exact Text Answer
+Check for an exact string match (case-sensitive).
 ```julia
-Question(
-    "Create x = 5, then calculate x * 2",
-    :code,
-    10,                    # Final result
-    "Type: x = 5; x * 2"   # Hint
+ExactQ(
+    "What keyword defines a function in Julia?",
+    "function",
+    "It's the word you type before the function name"  # Hint (optional)
+)
+
+# Without hint
+ExactQ("What keyword defines a function?", "function")
+```
+
+### Multi-Step Code
+Students can build on previous work since variable bindings persist between questions.
+```julia
+# Question 1: Create a variable
+CodeQ(
+    "Create a variable x and set it to 5",
+    5,
+    "Type: x = 5"
+)
+
+# Question 2: Use the variable from Question 1
+CodeQ(
+    "Now multiply x by 2",
+    10,                    # Result based on x = 5
+    "Type: x * 2"
+)
+
+# Or use MultistepCodeQ for complex multi-step operations
+MultistepCodeQ(
+    "First create x = 5, then create y = 10, finally return x + y",
+    15,
+    "Use semicolons to separate: x = 5; y = 10; x + y"
 )
 ```
 
