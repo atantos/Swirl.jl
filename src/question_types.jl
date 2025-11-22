@@ -102,30 +102,36 @@ Abstract base type for questions that require code execution.
 """
 abstract type CodeQuestion <: QuestionType end
 
-"""
-Default validator for code questions.
-Executes the code and compares the result to the expected answer.
-"""
-function _check_answer(user_answer::AbstractString, question::CodeQuestion)
-    user_answer = String(user_answer)
-    eval_result = safe_eval(user_answer)
+include("code_validators.jl")
+
+# Check answer for code questions
+# calls default code validator to test if output is equal
+function check_answer(input::AbstractString, question::CodeQuestion)
+
+    eval_result = safe_eval(input)  # Evaluate
+
+    # this mixes up answer checking with output
+    # I'd push this off to runner.jl
     if !eval_result.success
-        return (correct=false, message="Error: $(eval_result.error)")
+        correct = false
+        message = "✗ Error: $(eval_result.error)"
+        return (;correct, message)
     end
 
-    # Check if result matches expected
-    expected_answer = question.answer
-    if eval_result.result == expected_answer
-        return (correct=true, message="")
-    elseif typeof(eval_result.result) == typeof(expected_answer)
-        # Right type but wrong value
-        return (correct=false, message="Not quite. You got $(eval_result.result), but the expected answer is $(expected_answer)")
-    else
-        return (correct=false, message="Your code produced $(eval_result.result) (type: $(typeof(eval_result.result)))")
+    # This is a bit different but, I'd also put into runner
+    # Show result (like REPL) - suppress 'nothing'
+    if eval_result.result !== nothing
+        println(eval_result.result)
     end
 
-    return false
+    validator = (hasproperty(question, :validator) && !isnothing(question.validator)) ?
+        question.validator :
+        DefaultCodeValidator()
+
+    return validator(input, question, eval_result)
+
 end
+
 
 # Single step code question
 """
