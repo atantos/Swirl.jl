@@ -6,161 +6,24 @@
 ##
 ## should return a named tuple (correct::Bool, message::String)
 abstract type CodeValidator end
-
-#'  R ones
-## We can test the:
-## input: after parsing does expression match
-## output: value is equal to a value
-## output: value has the right type
-##
-#' * `calculates_same_value`: Test that the user's expression evaluates to a certain value.
-#
-# --> SameValueCodeValidator (has more defaults)
-# --> same_value_validator
-#'
-#' * `any_of_exprs`: Test that the user's expression matches any of several possible expressions.
-#
-# --> ExpressionCodeValidator
-# --> same_expression_validator
-
-#'
-#' * `expr_creates_var`: Test that a new variable has been created.
-#'
-# --> CreatesVarCodeValidator
-#
-#' * `expr_identical_to`: Test that the user has entered a particular expression.
-#
-# --> ExpressionCodeValidator
-#'
-#' * `expr_is_a`: Test that the expression itself is of a specific `class`.
-#'
-# --> IsaTypeCodeValidator
-#
-#' * `expr_uses_func`: Test that a particular function has been used.
-#'
-# --> UsesFunctionCodeValidator
-#
-#' * `func_of_newvar_equals`: Test the result of a computation such as \code{mean(newVar)} applied to a specific (user-named) variable created in a previous question.
-#'
-#' * `omnitest`: Test for a correct expression, a correct value, or both.
-#'
-#' * `val_has_length`: Test that the value of the expression has a particular `length`.
-#'
-# --> PredicateCodeValidator(x -> length(x) == 5, "Wrong length")
-# --> OutputCodeValidator((x, qa) -> length(x) == 5, "Wrong length")
-#
-#' * `val_matches`: Test that the user's expression matches a regular expression (`regex`).
-# --> PredicateCodeValidator(x -> !isnothing(match(r"regex", x)), "Doesn't match")
-# --> OutputCodeValidator((x,_...) -> !isnothing(match(r"regex", x)), "Doesn't match")
-#'
-#' * `var_is_a`: Test that the \emph{value} of the expression is of a specific `class`.
-#'
-# --> IsaTypeCodeValidator
-# --> same_type_validator
 #'
 
 # Validators are called after safe_eval so may be passed
 # input, question, answer
 # they return (; correct, message)
-## checks input
-struct InputValidator <: CodeValidator
-    f        # Take f(input, q.answer)  return Boolean
-    message
-end
-InputValidator(f) = InputValidator(f, "Input is not correct")
 
-(v::InputValidator)(input, question, result) = begin
-
-    correct = v.f(input, question.answer)
-    message = correct ? "" : v.message
-
-    (;correct, message)
-end
-
-# does expression have f as a call
-_matched(ex::Symbol, f::Symbol) = ex == f
-function _matched(ex, f::Symbol)
-    hasproperty(ex, :head) || return false
-    return any(Base.Fix2(_matched, f), ex.args)
-end
-
-# These functions return validators.
-# this assumes answer is a string to be parsed by Meta.parse
-# or a container of strings, each to be parsed
-function same_expression_validator(;
-                                   message = "Expression does not match the expected expression")
-
-    f = (user_answer, question_answer) -> begin
-        input = Meta.parse(user_answer)
-        target =  isa(question_answer, AbstractString) ? Meta.parse(question_answer) :
-            Meta.parse.(question_answer)
-        targets = applicable(iterate, target) ? target : (target,)
-        correct =  any(isequal(input), targets)
-    end
-
-    InputValidator(f, message)
-end
-
-function call_function_validator(;
-                                  message = "Expression does not contain the expected function call")
-    λ = (input, question_answer) -> begin
-        f = Symbol(question_answer)
-        expr = Meta.parse(input)
-        _matched(expr, f)
-    end
-    InputValidator(λ, message)
-end
-
-## --- validator that checks output (result)
-
-struct OutputValidator <: CodeValidator
-    f        # Take f(result, q.answer)  return Boolean
-    message
-end
-OutputValidator(f) = OutputValidator(f, "Output is incorrect")
-
-(v::OutputValidator)(input, question, result) = begin
-
-    correct = v.f(result.result, question.answer)
-    message = correct ? "" : v.message
-
-    (;correct, message)
-end
-
-# instances
-function same_value_validator(;
-                              cmp=isequal,
-                              message="Value does not match answer")
-    f = (val, question_answer) -> begin
-        cmp(val, question_answer)
-    end
-    OutputValidator(f, message)
-
-end
-
-function same_type_validator(; message ="Wrong type")
-
-    f = (result, question_answer) -> begin
-        correct_type = question_answer
-        correct_types = applicable(iterate, correct_type) ? correct_type : (correct_type,)
-        any(Base.Fix1(isa, result), correct_types)
-    end
-    OutputValidator(f, message)
-end
-
-
-
-
-
-
-
-
-## Or these
-
+# Should export or make easy to import
+# using Swirl: InputValidator, OutputValidator
+# using Swirl:
+#    same_value_validator,
+#    same_expression_validator,
+#    same_type_validator,
+#    call_function_validator,
+#    creates_var_validator
 
 
 """
-    DefaultCodeValidator
+    DefaultCodeValidator <: CodeValidator
 
 Compare value of command to specific expected value
 
@@ -200,111 +63,196 @@ DefaultCodeValidator(;answer = nothing, cmp = isequal) = DefaultCodeValidator(an
     return (; correct, message)
 end
 
-# compare parsed input to expression(s)
-"""
-    ExpressionCodeValidator(exprs)
+# InputValidator and OutputValidator focus on either (input, question.answer)
+# or (result.result, question.answer)
 
-Compare parsed expression entered to an answer expression(s)
+## --- validators that check the input
+
+"""
+    InputValidator(f, [message])
+
+Validator to check input string
+
+* `f`: function of `input` and `question_answer` returning a Boolean
+* `message`: message to write if answers are all incorrect
 
 # Example
 ```
-CodeQ(text = () -> md"Assign `2*x` to `y`",
-      answer = nothing,
-      hint = md"Just **type** `y = 2*x`",
-      validator = ExpressionCodeValidator(Meta.parse("y=2x"))
-      )
+        # match code by regular expression
+        CodeQ(text = md"Enter any code that contains exp",
+              answer = "Just any expression with `exp` would work",
+              hint = "Write an expression",
+              validator = InputValidator((input, question_answer) -> begin
+                                         m =  match(r"exp", input)
+                                         !isnothing(m)
+                                         end)),
 ```
-
-```
-CodeQ(text = () -> md"Assign either `3*x` or `2*x` to `y`",
-      answer = nothing,
-      hint = md"Just **type** `y = 2*x`",
-      validator = ExpressionCodeValidator((Meta.parse("y=2x"),Meta.parse("y=3x")))
-      )
-```
-
 """
-struct ExpressionCodeValidator <: CodeValidator
-    answer_expr
-end
-
-(v::ExpressionCodeValidator)(user_answer, question::CodeQuestion, eval_result) = begin
-
-    input = Meta.parse(user_answer)
-    target = v.answer_expr
-    targets = applicable(iterate, target) ? target : (target,)
-
-    correct =  any(isequal(input), targets)
-    message = correct ? "" : "Expression does not match the expected expression"
-
-    (; correct, message)
-end
-
-"""
-
-Check typeof output
-"""
-struct IsaTypeCodeValidator <: CodeValidator
-    answer_type
-end
-IsaTypeCodeValidator() = IsaTypeCodeValidator(nothing) # default to q.answer
-(v::IsaTypeCodeValidator)(user_answer, question::CodeQuestion, eval_result) = begin
-
-    correct_type = isnothing(v.answer_type) ? question.answer : v.answer_type
-    correct_types = applicable(iterate, correct_type) ? correct_type : (correct_type,)
-
-    correct = any(Base.Fix1(isa, eval_result.result), correct_types)
-    message = correct ? "" : "Wrong type"
-
-    return (; correct, message)
-end
-
-"""
-
-Check that input uses a function
-"""
-struct UsesFunctionCodeValidator <: CodeValidator
-    func::Symbol
-    UsesFunctionCodeValidator(f) = new(Symbol(f))
-end
-
-(v::UsesFunctionCodeValidator)(user_answer, question::CodeQuestion, eval_result) = begin
-
-    expr = Meta.parse(user_answer)
-    f = v.func
-
-    correct = _matched(expr, f)
-    message = correct ? "" : "Expression does not call $f"
-    return (; correct, message)
-end
-
-
-"""
-
-Check that output matches a predicate
-"""
-struct PredicateCodeValidator{F,S} <: CodeValidator
+struct InputValidator{F,S} <: CodeValidator
     f::F
     message::S
 end
-PredicateCodeValidator(f) = PredicateCodeValidator(f, "Result is not a match")
+InputValidator(f) = InputValidator(f, "Input is not correct")
 
-(v::PredicateCodeValidator)(user_answer, question::CodeQuestion, eval_result) = begin
+(v::InputValidator)(input, question, result) = begin
 
-    correct = v.f(eval_result.result)
+    correct = v.f(input, question.answer)
     message = correct ? "" : v.message
-    return (; correct, message)
+
+    (;correct, message)
 end
 
-struct CreatesVarCodeValidator <: CodeValidator
-    var::Symbol
+# These functions return validators.
+
+## check if user expression is a match
+
+# this assumes answer is a string to be parsed by Meta.parse
+# or a container of strings, each to be parsed
+function same_expression_validator(;
+                                   message = "Expression does not match the expected expression")
+
+    f = (user_answer, question_answer) -> begin
+        input = Meta.parse(user_answer)
+        target =  isa(question_answer, AbstractString) ? Meta.parse(question_answer) :
+            Meta.parse.(question_answer)
+        targets = applicable(iterate, target) ? target : (target,)
+        correct =  any(isequal(input), targets)
+    end
+
+    InputValidator(f, message)
 end
 
-(v::CreatesVarCodeValidator)(user_answer, question::CodeQuestion, eval_result) = begin
-    correct = v.var ∈ names(Main)
-    message = correct ? "" : "Variable $(v.var) was not created"
-    (; correct, message)
+
+
+# does expression have f as a call? Used to test if
+# function is called
+_matched(ex::Symbol, f::Symbol) = ex == f
+function _matched(ex, f::Symbol)
+    hasproperty(ex, :head) || return false
+    return any(Base.Fix2(_matched, f), ex.args)
 end
 
+## check if user expression calls a function
+function call_function_validator(;
+                                  message = "Expression does not contain the expected function call")
+    λ = (input, question_answer) -> begin
+        f = Symbol(question_answer)
+        expr = Meta.parse(input)
+        _matched(expr, f)
+    end
+    InputValidator(λ, message)
+end
+
+## --- validators that check output (result)
+"""
+    OutputValidator(f, [message])
+
+Validator to check output result
+
+* `f`: function of `result` and `question_answer` returning a Boolean
+* `message`: message to write if answers are all incorrect
+
+The input has been evaluated successfully and `result` is its output.
+
+# Example
+```
+# check that length of result is some amount
+CodeQ(text = md"Enter a container with 4 elements",
+      answer = "Many answers we possible, for example [1,2,3,4]",
+      hint = "Pick some container type and fill it with 4 things",
+      validator = OutputValidator((output, question_answer) -> begin
+                                  length(output) == 4
+                                  end))
+```
+"""
+struct OutputValidator{F,S} <: CodeValidator
+    f::F
+    message::S
+end
+OutputValidator(f) = OutputValidator(f, "Output is incorrect")
+
+(v::OutputValidator)(input, question, result) = begin
+
+    correct = v.f(result.result, question.answer)
+    message = correct ? "" : v.message
+
+    (;correct, message)
+end
+
+
+## check if the output value matches
+function same_value_validator(;
+                              cmp=isequal,
+                              message="Value does not match answer")
+    f = (val, question_answer) -> begin
+        cmp(val, question_answer)
+    end
+    OutputValidator(f, message)
+
+end
+
+## check if output type matches
+function same_type_validator(; message ="Wrong type")
+
+    f = (result, question_answer) -> begin
+        correct_type = question_answer
+        correct_types = applicable(iterate, correct_type) ? correct_type : (correct_type,)
+        any(Base.Fix1(isa, result), correct_types)
+    end
+    OutputValidator(f, message)
+end
+
+## check if command created variable (in Main)
+function creates_var_validator(; message = "Variable was not defined")
+    f = (result, question_answer) -> begin
+        var = Symbol(question_answer)
+        var ∈ names(Main)
+    end
+    OutputValidator(f, message)
+end
 
 ## More code validators go here.
+
+
+
+# >>>>> DELETE THIS LATER <<<<<<
+#'  R ones (https://github.com/swirldev/swirl/blob/master/R/answerTests2.R)
+#'
+#' * `calculates_same_value`: Test that the user's expression evaluates to a certain value.
+#
+# --> same_value_validator
+#'
+#' * `any_of_exprs`: Test that the user's expression matches any of several possible expressions.
+#
+# --> same_expression_validator
+
+#'
+#' * `expr_creates_var`: Test that a new variable has been created.
+#'
+# --> creates_var_validator
+#
+#' * `expr_identical_to`: Test that the user has entered a particular expression.
+#
+# --> same_expression_validator
+#'
+#' * `expr_is_a`: Test that the expression itself is of a specific `class`.
+#'
+# --> same_type_validator
+#
+#' * `expr_uses_func`: Test that a particular function has been used.
+#'
+# --> call_function_validator
+#
+#' * `func_of_newvar_equals`: Test the result of a computation such as \code{mean(newVar)} applied to a specific (user-named) variable created in a previous question.
+#'
+#' * `omnitest`: Test for a correct expression, a correct value, or both.
+#'
+#' * `val_has_length`: Test that the value of the expression has a particular `length`.
+#'
+# --> OutputValidator((x, qa) -> length(x) == 5, "Wrong length")
+#
+#' * `val_matches`: Test that the user's expression matches a regular expression (`regex`).
+# --> OutputValidator((x,_...) -> !isnothing(match(r"regex", x)), "Doesn't match")
+#'
+#' * `var_is_a`: Test that the \emph{value} of the expression is of a specific `class`.
+#'
