@@ -8,7 +8,7 @@ Learn `Julia` interactively in your console/terminal, inspired by the [swirl](ht
 
 `Swirl.jl` is an interactive learning platform that teaches you `Julia` programming right in your `REPL` (Read-Eval-Print Loop). Work through lessons at your own pace, get instant feedback on your answers, and build your `Julia` skills step by step.
 
-📺 **[Watch a demo video](https://youtu.be/_gOWw0_fi-E)** to see Swirl in action!
+📺 **[Watch a demo video](https://youtu.be/js0w_Hf-xwc)** to see Swirl in action!
 
 After trying it out, feel free to give it a ⭐ on GitHub!
 
