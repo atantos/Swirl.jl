@@ -102,111 +102,35 @@ Abstract base type for questions that require code execution.
 """
 abstract type CodeQuestion <: QuestionType end
 
-## Code Validators
-## should return a named tuple (correct::Bool, message::String)
-abstract type CodeValidator end
+include("code_validators.jl")
 
-struct DefaultCodeValidator <: CodeValidator
-end
+# Check answer for code questions
+# calls default code validator to test if output is equal
+function check_answer(input::AbstractString, question::CodeQuestion)
 
-(::DefaultCodeValidator)(user_answer, question::CodeQuestion) = begin
+    eval_result = safe_eval(input)  # Evaluate
 
-    user_answer = String(user_answer)
-    eval_result = safe_eval(user_answer)
-
+    # this mixes up answer checking with output
+    # I'd push this off to runner.jl
     if !eval_result.success
-        return (correct=false, message="Error: $(eval_result.error)")
-    end
-
-    # Check if result matches expected
-    expected_answer = question.answer
-
-    if eval_result.result == expected_answer
-
-        correct, message = true, ""
-
-    elseif typeof(eval_result.result) == typeof(expected_answer)
-
         correct = false
-        message="Not quite. You got $(eval_result.result) the right type of answer, but not the expected answer."
-
-    else
-
-        correct=false
-        message="Your code produced $(eval_result.result) (type: $(typeof(eval_result.result)))"
-
+        message = "✗ Error: $(eval_result.error)"
+        return (;correct, message)
     end
 
-    return (; correct, message)
+    # This is a bit different but, I'd also put into runner
+    # Show result (like REPL) - suppress 'nothing'
+    if eval_result.result !== nothing
+        println(eval_result.result)
+    end
+
+    validator = (hasproperty(question, :validator) && !isnothing(question.validator)) ?
+        question.validator :
+        DefaultCodeValidator()
+
+    return validator(input, question, eval_result)
+
 end
-
-# compare parsed expressions
-"""
-    ExpressionCodeValidator(expr)
-
-Compare expression entered to an answer expression
-# Example
-```
-CodeQ(text = () -> md"Assign `2*x` to `y`",
-      answer = nothing,
-      hint = md"Just **type** `y = 2*x`",
-      validator = ExpressionCodeValidator(Meta.parse("y=2x"))
-      ),
-```
-"""
-struct ExpressionCodeValidator <: CodeValidator
-    answer_expr
-end
-
-(v:: ExpressionCodeValidator)(user_answer, question::CodeQuestion) = begin
-    input = Meta.parse(user_answer)
-    target = v.answer_expr
-    correct =  input == target
-    message = correct ? "" : "Expression does not match the expected expression"
-    (; correct, message)
-end
-
-## More code validators go here.
-
-## --- default
-function _check_answer(input::AbstractString, question::CodeQuestion)
-    validator = DefaultCodeValidator()
-    validator(user_answer, question)
-end
-
-#=
-    # For CodeQ questions, evaluate and show the result first (like REPL behavior)
-    if isa(q, CodeQ)
-        eval_result = safe_eval(input)  # Evaluate
-
-        if !eval_result.success
-            # Evaluation failed
-            println("✗ Error: $(eval_result.error)")
-            handle_incorrect_answer(state)
-            return
-        end
-
-        # Show result (like REPL) - suppress 'nothing'
-        if eval_result.result !== nothing
-            println(eval_result.result)
-        end
-
-        # Check if result matches expected answer
-        expected_answer = q.answer
-        if eval_result.result == expected_answer
-            result = (correct=true, message="")
-        elseif typeof(eval_result.result) == typeof(expected_answer)
-            # Right type but wrong value
-            result = (correct=false, message="Not quite. You got $(eval_result.result), but the expected answer is $(expected_answer)")
-        else
-            result = (correct=false, message="Your code produced $(eval_result.result) (type: $(typeof(eval_result.result)))")
-        end
-
-        res = result.correct
-    else
-=#
-
-
 
 
 # Single step code question
@@ -235,47 +159,14 @@ CodeQ(
 struct CodeQ <: CodeQuestion
     text
     answer
-    answer_test # swirl.R makes use of this
+    #answer_test # swirl.R makes use of this
     hint
     validator
     setup
 end
 
-CodeQ(; text="", answer="", answer_test="", hint="", validator=nothing, setup="") =
-    CodeQ(text, answer, answer_test, hint, validator, setup)
-
-
-"""
-Default validator for code questions.
-Executes the code and compares the result to the expected answer.
-"""
-function check_answer(input::AbstractString, question::CodeQ)
-
-    eval_result = safe_eval(input)  # Evaluate
-
-    # this mixes up answer checking with output
-    # I'd push this off to runner.jl
-    if !eval_result.success
-        correct = false
-        message = "✗ Error: $(eval_result.error)"
-        return (;correct, message)
-    end
-
-    # This is a bit different but, I'd also put into runner
-    # Show result (like REPL) - suppress 'nothing'
-    if eval_result.result !== nothing
-        println(eval_result.result)
-    end
-
-    if hasproperty(question, :validator) && !isnothing(question.validator)
-        question.validator(input, question) # not sure what to pass of question
-    else
-        # default
-        validator = DefaultCodeValidator()
-        return validator(input, question)
-    end
-
-end
+CodeQ(; text="", answer="",  hint="", validator=nothing, setup="") =
+    CodeQ(text, answer, hint, validator, setup)
 
 
 """
