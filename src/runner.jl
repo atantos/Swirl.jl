@@ -798,6 +798,7 @@ function process_answer(state::ReplLessonState, input::AbstractString)
             else
                 println("✗ Not quite right.")
             end
+            println("")
         end
         handle_incorrect_answer(state)
     end

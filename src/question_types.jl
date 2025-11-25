@@ -114,7 +114,7 @@ function check_answer(input::AbstractString, question::CodeQuestion)
     # I'd push this off to runner.jl
     if !eval_result.success
         correct = false
-        message = "✗ Error: $(eval_result.error)"
+        message = "Evaluation error: $(eval_result.error)"
         return (;correct, message)
     end
 
