@@ -778,39 +778,9 @@ function process_answer(state::ReplLessonState, input::AbstractString)
     # Regular questions
     state.current_attempts += 1
 
-    # For CodeQ questions, evaluate and show the result first (like REPL behavior)
-    if isa(q, CodeQ)
-        eval_result = safe_eval(input)  # Evaluate
-
-        if !eval_result.success
-            # Evaluation failed
-            println("✗ Error: $(eval_result.error)")
-            handle_incorrect_answer(state)
-            return
-        end
-
-        # Show result (like REPL) - suppress 'nothing'
-        if eval_result.result !== nothing
-            println(eval_result.result)
-        end
-
-        # Check if result matches expected answer 
-        expected_answer = q.answer
-        if eval_result.result == expected_answer
-            result = (correct=true, message="")
-        elseif typeof(eval_result.result) == typeof(expected_answer)
-            # Right type but wrong value
-            result = (correct=false, message="Not quite. You got $(eval_result.result), but the expected answer is $(expected_answer)")
-        else
-            result = (correct=false, message="Your code produced $(eval_result.result) (type: $(typeof(eval_result.result)))")
-        end
-
-        res = result.correct
-    else
-        # For non-code questions, use dispatch-based check_answer
-        result = check_answer(input, q)
-        res = isa(result, NamedTuple) ? result.correct : result
-    end
+    # For non-code questions, use dispatch-based check_answer
+    result = check_answer(input, q)
+    res = isa(result, NamedTuple) ? result.correct : result
 
     if res == true
         if isaquestion(q)
@@ -824,10 +794,11 @@ function process_answer(state::ReplLessonState, input::AbstractString)
         if isaquestion(q)
             # Show appropriate error message
             if isa(result, NamedTuple)
-                println("✗ $(result.message)")
+                println("✗ $(result.message)") # error?
             else
                 println("✗ Not quite right.")
             end
+            println("")
         end
         handle_incorrect_answer(state)
     end

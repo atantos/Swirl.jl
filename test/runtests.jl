@@ -69,3 +69,5 @@ using Swirl
     end
 
 end
+
+include("test-validators.jl")
