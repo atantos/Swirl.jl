@@ -186,7 +186,12 @@ EqualValueValidator(;answer = nothing, cmp = isequal) = EqualValueValidator(answ
     # Check if result matches expected
     expected_answer = isnothing(question.answer) ? v.answer_value : question.answer
 
-    if v.cmp(result.result, expected_answer)
+    if isa(expected_answer, Base.Callable)
+
+        correct = expected_answer(result.result)
+        message = "Try again"
+
+    elseif v.cmp(result.result, expected_answer)
 
         correct = true
         message = ""

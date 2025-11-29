@@ -300,9 +300,11 @@ function default_validator(question::StringQ)
         if isa(question.answer, AbstractString)
             validator = same_value_validator(question.answer)
         elseif isa(question.answer, Regex)
-            validator = match_value_validator(question.answer)
+            validator = match_output_validator(question.answer)
+        elseif isa(question.answer, Base.Callable)
+            validator = OutputValidator((x,_) -> question.answer(x), "Try again")
         else
-            return question.answer(result.result)
+            validator = same_value_validator(string(question.answer))
         end
 
         return validator(input, question, result)
@@ -338,6 +340,8 @@ function default_validator(question::NumericQ)
             validator = same_value_validator(question.answer)
         elseif isa(question.answer, Tuple)
             validator = in_interval_validator(question.answer)
+        elseif isa(question.answer, Base.Callable)
+            validator = OutputValidator((x,_) -> question.answer(x), "Try again")
         else
             validator = in_range_validator(question.answer)
         end
